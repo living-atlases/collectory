@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.6.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+  <changeSet author="ALA Dev Team" id="1" failOnError="false">
+    <!--
+      Here will be better to use:
+      <preConditions onFail="MARK_RAN">
+      to mark as executed that migration if that column already exists (the case of ALA or already migrated LA dbs)
+      but there is a bug in the current liquibase/mysql/grails versions that prevents to run like this:
+      https://github.com/liquibase/liquibase/issues/1639
+      so we use failOnError="false" in this changeSet meanwhile
+      -->
+    <preConditions>
+      <not>
+        <columnExists tableName="data_resource" columnName="suitable_for" />
+      </not>
+    </preConditions>
+    <comment>Optionally sync LA ala-install schema with ALA prod one</comment>
+    <sqlFile path="initial-sync.sql" relativeToChangelogFile="true" encoding="utf8" stripComments="1" />
+  </changeSet>  
+</databaseChangeLog>
