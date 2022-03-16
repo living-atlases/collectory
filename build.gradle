@@ -9,7 +9,6 @@ buildscript {
         classpath "org.grails.plugins:hibernate5:7.0.5"
         classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.0"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.3.2"
-        classpath 'org.grails.plugins:database-migration:3.1.0'
     }
 }
 
@@ -89,17 +88,7 @@ configurations {
     }
 }
 
-sourceSets {
-    main {
-        resources {
-            srcDir 'db/changelog/'
-        }
-    }
-}
-
 dependencies {
-    implementation 'org.liquibase:liquibase-core:3.10.1'
-    implementation 'org.grails.plugins:database-migration:3.1.0'
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
