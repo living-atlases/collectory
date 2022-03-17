@@ -62,7 +62,9 @@ final warn = [
 
 ]
 final info = [
-        'au.org.ala.collectory'
+        'au.org.ala.collectory',
+        'org.liquibase',
+        'liquibase'
 ]
 
 final debug = []

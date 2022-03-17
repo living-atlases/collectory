@@ -1,0 +1,433 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.6.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+<!-- This was generated with:
+
+  liquibase \-\-classpath=/var/lib/tomcat8/webapps-colecciones-es.l-a.site/ROOT/WEB-INF/lib/mysql-connector-java-8.0.25.jar diffChangelog
+
+Using a liquibase.properties with:
+
+changeLogFile=changelog.mysql.sql
+#### Target Database ####
+liquibase.command.url=jdbc:mysql://localhost:3306/collectory?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8&useSSL=False
+# username for your Target database.
+liquibase.command.username: collectory
+liquibase.command.password: XXXXX
+#### Source Database ####
+## The source database is the baseline or reference against which your target database is compared for diff/diffchangelog commands.
+# Enter URL for the source database
+liquibase.command.referenceUrl: jdbc:mysql://localhost:3306/collectory_dev?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8&useSSL=False
+liquibase.command.referenceUsername: collectory
+liquibase.command.referencePassword: XXXXX
+-->
+    <changeSet author="ALA Dev Team" id="1647535601585-83">
+        <preConditions onFail="MARK_RAN">
+            <!-- With MARK_RAN we skip this step as probably was already migrated -->
+            <not>
+                <columnExists tableName="data_resource" columnName="citable_agent" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="citable_agent" type="VARCHAR(2048 BYTE)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-84">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="display_name" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="display_name" type="VARCHAR(1024 BYTE)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-85">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="contributor" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="contributor" type="BIT(1)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-86">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="last_harvested" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="last_harvested" type="DATETIME"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-87">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="repatriation_country" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="repatriation_country" type="VARCHAR(255 BYTE)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-88">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="is_private" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="is_private" type="BIT(1)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-89">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="suitable_for" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="suitable_for" type="TEXT(65535)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-90">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="data_collection_protocol_name" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="data_collection_protocol_name" type="TEXT(65535)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-91">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="data_collection_protocol_doc" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="data_collection_protocol_doc" type="TEXT(65535)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-92">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="data_resource" columnName="suitable_for_other_detail" />
+            </not>
+        </preConditions>
+        <addColumn tableName="data_resource">
+            <column name="suitable_for_other_detail" type="TEXT(65535)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-96">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="collection" columnNames="uid" />
+            </not>
+        </preConditions>
+        <createIndex indexName="uid_idx" tableName="collection">
+            <column name="uid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-97">
+         <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="data_hub" columnNames="uid" />
+            </not>
+        </preConditions>
+        <createIndex indexName="uid_idx" tableName="data_hub">
+            <column name="uid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-98">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="data_provider" columnNames="uid" />
+            </not>
+        </preConditions>
+        <createIndex indexName="uid_idx" tableName="data_provider">
+            <column name="uid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-99">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="data_resource" columnNames="uid" />
+            </not>
+        </preConditions>
+        <createIndex indexName="uid_idx" tableName="data_resource">
+            <column name="uid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-100">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="institution" columnNames="uid" />
+            </not>
+        </preConditions>
+        <createIndex indexName="uid_idx" tableName="institution">
+            <column name="uid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-104">
+        <dropUniqueConstraint constraintName="collection_id" tableName="provider_map"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-1">
+        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-2">
+        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-3">
+        <addNotNullConstraint columnDataType="varchar(255)" columnName="attributions" tableName="data_hub" validate="true"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-4">
+        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-5">
+        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-6">
+        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-7">
+        <modifyDataType columnName="citation" newDataType="varchar(4096)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-8">
+        <modifyDataType columnName="connection_parameters" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-9">
+        <modifyDataType columnName="data_generalizations" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-10">
+        <modifyDataType columnName="default_darwin_core_values" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-11">
+        <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-12">
+        <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-13">
+        <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-14">
+        <modifyDataType columnName="focus" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-15">
+        <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-16">
+        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-17">
+        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-18">
+        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-19">
+        <modifyDataType columnName="guid" newDataType="varchar(100)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-20">
+        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-21">
+        <modifyDataType columnName="harvesting_notes" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-22">
+        <modifyDataType columnName="information_withheld" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-23">
+        <modifyDataType columnName="keywords" newDataType="varchar(1024)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-24">
+        <modifyDataType columnName="kingdom_coverage" newDataType="varchar(1024)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-25">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-26">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-27">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-28">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-29">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-30">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-31">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-32">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-33">
+        <dropDefaultValue columnDataType="boolean" columnName="make_contact_public" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-34">
+        <modifyDataType columnName="member_collections" newDataType="varchar(4096)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-35">
+        <modifyDataType columnName="member_data_resources" newDataType="varchar(4096)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-36">
+        <modifyDataType columnName="member_institutions" newDataType="longtext" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-37">
+        <modifyDataType columnName="members" newDataType="longtext" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-38">
+        <modifyDataType columnName="mobilisation_notes" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-39">
+        <modifyDataType columnName="name" newDataType="varchar(128)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-40">
+        <modifyDataType columnName="name" newDataType="varchar(128)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-41">
+        <modifyDataType columnName="name" newDataType="varchar(45)" tableName="sequence"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-42">
+        <modifyDataType columnName="network_membership" newDataType="varchar(256)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-43">
+        <modifyDataType columnName="network_membership" newDataType="varchar(256)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-44">
+        <modifyDataType columnName="network_membership" newDataType="varchar(256)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-45">
+        <modifyDataType columnName="new_value" newDataType="varchar(2048)" tableName="audit_log"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-46">
+        <modifyDataType columnName="notes" newDataType="varchar(2048)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-47">
+        <modifyDataType columnName="notes" newDataType="varchar(2048)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-48">
+        <modifyDataType columnName="notes" newDataType="varchar(2048)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-49">
+        <modifyDataType columnName="notes" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-50">
+        <modifyDataType columnName="notes" newDataType="varchar(2048)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-51">
+        <modifyDataType columnName="old_value" newDataType="varchar(2048)" tableName="audit_log"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-52">
+        <modifyDataType columnName="permissions_document" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-53">
+        <modifyDataType columnName="persisted_object_id" newDataType="bigint(19)" tableName="audit_log"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-54">
+        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-55">
+        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-56">
+        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-57">
+        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-58">
+        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-59">
+        <modifyDataType columnName="prefix" newDataType="varchar(5)" tableName="sequence"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-60">
+        <modifyDataType columnName="pub_description" newDataType="clob" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-61">
+        <modifyDataType columnName="pub_description" newDataType="clob" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-62">
+        <modifyDataType columnName="pub_description" newDataType="clob" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-63">
+        <modifyDataType columnName="pub_description" newDataType="clob" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-64">
+        <addDefaultValue columnDataType="boolean" columnName="public_archive_available" defaultValueBoolean="false" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-65">
+        <modifyDataType columnName="rights" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-66">
+        <modifyDataType columnName="scientific_names" newDataType="varchar(2048)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-67">
+        <modifyDataType columnName="status" newDataType="varchar(255)" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-68">
+        <dropNotNullConstraint columnDataType="varchar(255)" columnName="status" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-69">
+        <modifyDataType columnName="sub_collections" newDataType="varchar(4096)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-70">
+        <modifyDataType columnName="taxonomy_hints" newDataType="varchar(1024)" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-71">
+        <modifyDataType columnName="taxonomy_hints" newDataType="varchar(1024)" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-72">
+        <modifyDataType columnName="taxonomy_hints" newDataType="varchar(1024)" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-73">
+        <modifyDataType columnName="taxonomy_hints" newDataType="longtext" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-74">
+        <modifyDataType columnName="taxonomy_hints" newDataType="varchar(1024)" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-75">
+        <modifyDataType columnName="tech_description" newDataType="clob" tableName="collection"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-76">
+        <modifyDataType columnName="tech_description" newDataType="clob" tableName="data_hub"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-77">
+        <modifyDataType columnName="tech_description" newDataType="clob" tableName="data_provider"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-78">
+        <modifyDataType columnName="tech_description" newDataType="clob" tableName="data_resource"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-79">
+        <modifyDataType columnName="tech_description" newDataType="clob" tableName="institution"/>
+    </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-81">
+        <createIndex indexName="collection_id" tableName="provider_map" unique="false">
+            <column name="collection_id"/>
+        </createIndex>
+    </changeSet>
+    <!--
+        Another useful way to specify changesets is with plain mysql files:
+    -->
+    <!--
+    <changeSet author="ALA Dev Team" id="1" failOnError="WARN">
+    <preConditions>
+      <not>
+        <columnExists tableName="data_resource" columnName="suitable_for" />
+      </not>
+    </preConditions>
+    <comment>Some comment</comment>
+    <sqlFile path="some.sql" relativeToChangelogFile="true" encoding="utf8" stripComments="1" />
+  </changeSet>
+  -->
+</databaseChangeLog>
