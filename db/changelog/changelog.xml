@@ -205,7 +205,7 @@ liquibase.command.referencePassword: XXXXX
         <modifyDataType columnName="default_darwin_core_values" newDataType="longtext" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-11">
-        <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="collection"/>
+        <modifyDataType columnName="focus" newDataType="longtext" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-12">
         <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="data_hub"/>
@@ -412,6 +412,11 @@ liquibase.command.referencePassword: XXXXX
         <modifyDataType columnName="tech_description" newDataType="clob" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-81">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="provider_map" columnNames="collection_id" />
+            </not>
+        </preConditions>
         <createIndex indexName="collection_id" tableName="provider_map" unique="false">
             <column name="collection_id"/>
         </createIndex>
