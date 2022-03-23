@@ -41,10 +41,10 @@
 
             <div class="tabbable">
                 <ul class="nav nav-tabs" id="home-tabs">
-                    <li class="active"><a href="#basicMetadata" data-toggle="tab">Metadata</a></li>
+                    <li class="active"><a href="#basicMetadata" data-toggle="tab"><g:message code="show.tab.metadata" /></a></li>
                     <g:if test="${instance.resourceType=='records'}">
-                        <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
-                        <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                        <li><a href="#usage-stats" data-toggle="tab"><g:message code="show.tab.usage.stats" /></a></li>
+                        <li><a href="#metrics" data-toggle="tab"><g:message code="show.tab.metrics" /></a></li>
                     </g:if>
                 </ul>
             </div>

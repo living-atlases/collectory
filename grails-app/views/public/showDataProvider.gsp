@@ -41,10 +41,10 @@
 
             <div class="tabbable">
                 <ul class="nav nav-tabs" id="home-tabs">
-                    <li class="active"><a href="#basic-metadata" data-toggle="tab">Metadata</a></li>
-                    <li><a href="#data-resources" data-toggle="tab">Data Resources</a></li>
-                    <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
-                    <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                    <li class="active"><a href="#basic-metadata" data-toggle="tab"><g:message code="show.tab.metadata" /></a></li>
+                    <li><a href="#data-resources" data-toggle="tab"><g:message code="show.tab.data.resources" /></a></li>
+                    <li><a href="#usage-stats" data-toggle="tab"><g:message code="show.tab.usage.stats" /></a></li>
+                    <li><a href="#metrics" data-toggle="tab"><g:message code="show.tab.metrics" /></a></li>
                 </ul>
             </div>
 

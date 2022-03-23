@@ -62,7 +62,7 @@
                 <div class="tabbable">
                     <ul class="nav nav-tabs" id="overviewTabs">
                         <li class="active"><a id="tab1" href="#basic-metadata" data-toggle="tab"><g:message code="public.show.overviewtabs.overview" /></a></li>
-                        <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
+                        <li><a href="#usage-stats" data-toggle="tab"><g:message code="show.tab.usage.stats" /></a></li>
                         <li><a id="tab2" href="#metrics" data-toggle="tab"><g:message code="public.show.overviewtabs.records" /></a></li>
                         <li id="imagesTabEl" style="display:none;"><a id="tab3" href="#imagesTab" data-toggle="tab"><g:message code="public.show.overviewtabs.images" /></a></li>
                     </ul>
