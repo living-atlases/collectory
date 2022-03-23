@@ -70,7 +70,7 @@
                             </div><!-- /input-group -->
 
                             <div class="pull-right">
-                                <button href="javascript:reset()" title="Remove all filters and sorting options" class=" form-control btn btn-default">
+                                <button href="javascript:reset()" title="${message(code:"datasets.remove.all.filters")}" class=" form-control btn btn-default">
                                     <g:message code="public.datasets.drsearch.resetlist" />
                                 </button>
                                 <button href="#" id="downloadLink" class="btn btn-default"
@@ -92,11 +92,11 @@
                       </div>
                       <div class="col-md-4 form-inline">
                           <label for="sort"><g:message code="public.datasets.sortwidgets.sb" /></label>
-                          <g:select class="form-control  input-sm" id="sort" name="sort" from="${['name','type','license']}"/>
+                          <g:select class="form-control  input-sm" id="sort" name="sort" valueMessagePrefix="datasets.sort" from="${['name','type','license']}"/>
                       </div>
                       <div class="col-md-4 form-inline">
                           <label for="dir"><g:message code="public.datasets.sortwidgets.so" /></label>
-                          <g:select class="form-control  input-sm" id="dir" name="dir" from="${['ascending','descending']}"/>
+                          <g:select class="form-control  input-sm" id="dir" name="dir" valueMessagePrefix="datasets.sort" from="${['ascending','descending']}"/>
                       </div>
                   </div>
                 </div><!--drop downs-->
