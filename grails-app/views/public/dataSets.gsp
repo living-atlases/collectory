@@ -62,7 +62,7 @@
                             <div class="input-group col-lg-8">
                                 <input type="text" name="dr-search" id="dr-search" class="form-control" />
                                 <span class="input-group-btn">
-                                    <button href="javascript:void(0);" title="Only show data sets which contain the search term"
+                                    <button href="javascript:void(0);" title="${message(code:"public.datasets.search.btn.title")}"
                                             id="dr-search-link" class="btn btn-default">
                                         <g:message code="public.datasets.drsearch.search" />
                                     </button>
