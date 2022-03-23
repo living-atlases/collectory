@@ -238,7 +238,7 @@ function loadDownloadStats(loggerServicesUrl, uid, name, eventType) {
                     if (details.key.indexOf("test") >=0){
                         usageTableRow += "<br/><span style='font-size: 12px;'> *" + jQuery.i18n.prop('collectory.js.testingstatistics') + "</span>";
                     }
-                    usageTableRow += '</td><td style="text-align: right;">' + addCommas(details.value.events) + ' events</td><td style="text-align: right">'  + addCommas(details.value.records)  + ' records </td></tr>';
+                    usageTableRow += '</td><td style="text-align: right;">' + addCommas(details.value.events) + ' ' + jQuery.i18n.prop('collectory.js.events') + '</td><td style="text-align: right">'  + addCommas(details.value.records)  + ' ' + jQuery.i18n.prop('collectory.js.records') + ' </td></tr>';
                     $usageTable.append($(usageTableRow));
                 });
                 $usageDiv.append($usageTable);
