@@ -182,8 +182,8 @@ function clearList() {
 /** display the current size of the filtered list **/
 function updateTotal() {
     total = resources.length;
-    $('#resultsReturned').html(jQuery.i18n.prop('datasets.js.updatetotal03') +  ' <strong>' + total + '</strong> ' + jQuery.i18n.prop('datasets.js.updatetotal04') + (total == 1 ? jQuery.i18n.prop('datasets.js.updatetotal05') : jQuery.i18n.prop('datasets.js.updatetotal06')));
-    $('#downloadLink').attr('title', jQuery.i18n.prop('datasets.js.updatetotal01') + ' ' + total + ' ' + jQuery.i18n.prop('datasets.js.updatetotal02'));
+    $('#resultsReturned').html(jQuery.i18n.prop((total == 1 ?  "datasets.js.updatetotal.singular":"datasets.js.updatetotal.plural"), total));
+    $('#downloadLink').attr('title', jQuery.i18n.prop('datasets.js.updatetotal.download', total));
 }
 function hideTooltip(element) {
     if (element == undefined) return;
