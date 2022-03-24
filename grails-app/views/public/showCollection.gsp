@@ -247,7 +247,8 @@
                       <g:if test="${instance.institution?.websiteUrl}">
                           <div class="webSite">
                               <a class='external' rel='nofollow' target="_blank" href="${instance.institution?.websiteUrl}">
-                                  <g:message code="public.show.osb.link02"/>&nbsp;&nbsp;<cl:institutionType inst="${instance.institution}"/><g:message code="public.show.osb.link03" /></a>
+                                  <g:message code="public.si.website.link.param" args="${[g.message(code:'public.si.website.link.param.'
+                                                     + cl.institutionType(inst:instance.institution))]}"/></a>
                           </div>
                       </g:if>
                   </section>
