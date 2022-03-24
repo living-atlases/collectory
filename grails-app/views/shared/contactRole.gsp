@@ -5,7 +5,7 @@
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${command.ENTITY_TYPE}"/>
         <g:set var="entityNameLower" value="${command.ENTITY_TYPE.toLowerCase()}"/>
-        <title><g:message code="${entityNameLower}.base.label" default="Edit ${entityNameLower} metadata" /></title>
+        <title><g:message code="${entityNameLower}.base.label" args="${[entityNameLower]}" default="Edit ${entityNameLower} metadata" /></title>
     </head>
     <body>
         <div class="nav">
