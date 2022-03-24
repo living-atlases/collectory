@@ -28,8 +28,8 @@
             <div class="message">${flash.message}</div>
           </g:if>
           <div>
-            <h1>${grailsApplication.config.projectName}  <g:message code="public.datasets.header.title" /></h1>
-            <p><g:message code="public.datasets.header.message01" /> ${grailsApplication.config.projectName}, <g:message code="public.datasets.header.message02" />.</p>
+            <h1><g:message code="public.datasets.header.title.param" args="${[grailsApplication.config.projectName]}" /></h1>
+            <p><g:message code="public.datasets.header.message.param" args="${[grailsApplication.config.projectName]}" /></p>
           </div><!--close hrgroup-->
         </div><!--close section-->
       </div><!--close header-->
