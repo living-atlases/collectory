@@ -85,7 +85,7 @@
                                 <p><g:message code="public.show.oc.des01" />: <cl:concatenateStrings values='${fieldValue(bean: instance, field: "kingdomCoverage")}'/>.</p>
                             </g:if>
                             <g:if test="${fieldValue(bean: instance, field: 'scientificNames')}">
-                                <p><cl:collectionName name="${instance.name}" prefix="The "/> <g:message code="public.show.oc.des02" />:<br/>
+                                <p><cl:collectionName name="${instance.name}" prefix="${g.message(code:'collection.tag.lib.collection.prefix')}"/> <g:message code="public.show.oc.des02" />:<br/>
                                     <cl:JSONListAsStrings json='${instance.scientificNames}'/>.</p>
                             </g:if>
 
@@ -114,7 +114,7 @@
                             <g:set var="nouns" value="${cl.nounForTypes(types:instance.listCollectionTypes())}"/>
                             <h2><g:message code="public.show.oc.label04" /> <cl:nounForTypes types="${instance.listCollectionTypes()}"/> <g:message code="public.show.oc.label05" /></h2>
                             <g:if test="${fieldValue(bean: instance, field: 'numRecords') != '-1'}">
-                                <p><g:message code="public.show.oc.des07" /> ${nouns} in <cl:collectionName prefix="the " name="${instance.name}"/> <g:message code="public.show.oc.des08" /> ${fieldValue(bean: instance, field: "numRecords")}.</p>
+                                <p><g:message code="public.show.oc.des07" /> ${nouns} <g:message code="public.show.oc.des07.in" /> <cl:collectionName prefix="${g.message(code:'collection.tag.lib.collection.prefix.lowercase')}" name="${instance.name}"/> <g:message code="public.show.oc.des08" /> ${fieldValue(bean: instance, field: "numRecords")}.</p>
                             </g:if>
                             <g:if test="${fieldValue(bean: instance, field: 'numRecordsDigitised') != '-1'}">
                                 <p><g:message code="public.show.oc.des09" /> ${fieldValue(bean: instance, field: "numRecordsDigitised")} <g:message code="public.show.oc.des10" />.
@@ -124,7 +124,7 @@
 
                             <g:if test="${instance.listSubCollections()?.size() > 0}">
                                 <h2><g:message code="public.show.oc.label06" /></h2>
-                                <p><cl:collectionName prefix="The " name="${instance.name}"/> <g:message code="public.show.oc.des14" />:</p>
+                                <p><cl:collectionName prefix="${g.message(code:"collection.tag.lib.collection.prefix")}" name="${instance.name}"/> <g:message code="public.show.oc.des14" />:</p>
                                 <cl:subCollectionList list="${instance.subCollections}"/>
                             </g:if>
 
@@ -141,7 +141,7 @@
                             <div class="col-md-8">
                                 <h2><g:message code="public.show.rt.title" /></h2>
                                 <g:if test="${instance.numRecords != -1}">
-                                    <p><cl:collectionName prefix="The " name="${instance.name}"/> has an estimated ${fieldValue(bean: instance, field: "numRecords")} ${nouns}.
+                                    <p><cl:collectionName prefix="${g.message(code:'collection.tag.lib.collection.prefix')}" name="${instance.name}"/> has an estimated ${fieldValue(bean: instance, field: "numRecords")} ${nouns}.
                                         <g:if test="${instance.numRecordsDigitised != -1}">
                                             <br/><g:message code="public.show.rt.des01" /> <cl:percentIfKnown dividend='${instance.numRecordsDigitised}' divisor='${instance.numRecords}'/> <g:message code="public.show.rt.des02" /> (${fieldValue(bean: instance, field: "numRecordsDigitised")} <g:message code="public.show.rt.des03" />).
                                         </g:if>

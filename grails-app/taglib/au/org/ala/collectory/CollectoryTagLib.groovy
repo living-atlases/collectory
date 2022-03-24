@@ -681,13 +681,13 @@ class CollectoryTagLib {
      */
     def temporalSpanText = { attrs ->
         if (attrs.start && attrs.end) {
-            out << "The collection was established in ${attrs.start} and ceased acquisitions in ${attrs.end}."
+            out << message(code:"collectory.tag.lib.the.collection.was.established.in", args:[attrs.start, attrs.end])
         } else if (attrs.start) {
-            out << "The collection was established in ${attrs.start} and continues to the present."
+            out << message(code:"collectory.tag.lib.the.collection.was.established.in.and.continues", args:[attrs.start])
         } else if (attrs.end) {
-            out << "The collection ceased acquisitions in ${attrs.end}."
+            out << message(code:"collectory.tag.lib.the.collection.ceased.acquisitions.in", args:[attrs.end])
         } else if (attrs.change) {
-            out << "[No start or end date specified for this collection.]"
+            out << message(code:"collectory.tag.lib.no.start.or.end.date.specified")
         }
     }
 
@@ -744,12 +744,13 @@ class CollectoryTagLib {
      */
     def collectionName = { attrs ->
         def name = attrs.name
-        if (name && !(name =~ 'Collection' || name =~ 'Herbarium')) {
-            name += " collection"
-        }
-        if (attrs.prefix && !name.toLowerCase().startsWith(attrs.prefix.toLowerCase())) {
-            name = attrs.prefix + name
-        }
+        // If name includes "Collection" or "Collection" translated or Herbarium don't add "collection"
+        // If we use a prefix and the collection name does not start with that prefix, add it
+        // but internationalized (the word order is different form on language to other)
+        name = g.message(code:"collectory.tag.lib.collection.name.prefix${!(name =~ 'Collection' || name =~ g.message(code:"collection.tab.lib.collection") || name =~ 'Herbarium')? '.suffix': ''}", args:[
+                attrs.prefix && !name.toLowerCase().startsWith(attrs.prefix.toLowerCase())? attrs.prefix: '',
+                name
+                ])
         out << name
     }
 
@@ -770,7 +771,7 @@ class CollectoryTagLib {
                 }
                 out << "</ul>"
             } catch (ConverterException e) {
-                out  << "unable to parse sub-collections"
+                out  << message(code:"collectory.tag.lib.unable.to.parse.sub.collections")
             }
         }
     }
@@ -1011,7 +1012,7 @@ class CollectoryTagLib {
 
     def warnIfInexactMapping = { attrs ->
         if (attrs.collection?.isInexactlyMapped()) {
-            out << "<div id='warnings'><h4>Warning</h4>Records do not exactly match this collection."
+            out << message(code:"collectory.tag.lib.records.do.not.exactly.match.this.collection")
             out << "<br/>${attrs.collection?.providerMap?.warning}</div>"
         }
     }
@@ -1265,21 +1266,21 @@ class CollectoryTagLib {
     def nounForTypes = {attrs ->
         def nouns = []
         if (attrs.types =~ "seedbank") {
-            nouns << "accessions"
+            nouns << message(code:"collectory.tag.lib.noun.accessions")
         }
         if (attrs.types =~ "preserved") {
-            nouns << "specimens"
+            nouns << message(code:"collectory.tag.lib.specimens")
         }
         if (attrs.types =~ "cellcultures" || attrs.types =~ "living") {
-            nouns << "cultures"
+            nouns << message(code:"collectory.tag.lib.cultures")
         }
         if (attrs.types =~ "genetic") {
-            nouns << "samples"
+            nouns << message(code:"collectory.tag.lib.samples")
         }
         if (!nouns) {
-            nouns << "specimens"  // default
+            nouns << message(code:"collectory.tag.lib.specimens")  // default
         }
-        out << nouns.join(" and ")
+        out << nouns.join(message(code:"collectory.tag.lib.and"))
     }
 
     /**
@@ -1604,6 +1605,7 @@ class CollectoryTagLib {
             out << '<div class="child-institutions">'
             switch (exceptions.listType) {
                 case 'excludes':
+
                     out << '<span>Note that totals and charts do not include records provided by the related institution' +
                             (exceptions.childInstitutions.size() > 1 ? 's' : '') + ':</span>'
                     out << '<ul>'
@@ -1612,14 +1614,13 @@ class CollectoryTagLib {
                         switch (collections?.size()) {
                             case 0: break
                             case 1:
-                                out << "<li>the ${link(controller: 'public', action: 'show', id: inst.uid) {inst.name}} which includes "
-                                out << "the ${link(controller: 'public', action: 'show', id: collections[0].uid) {collectionName(name: collections[0].name)}}.</li>"
+                                out << message(code:"collectory.tag.lib.the.inst.which.includes.the", args:[link(controller: 'public', action: 'show', id: inst.uid) {inst.name}, link(controller: 'public', action: 'show', id: collections[0].uid) {collectionName(name: collections[0].name)}])
                                 break;
                             default:
-                                out << "the " + link(controller: 'public', action: 'show', id: inst.uid) {inst.name} + " which includes"
+                                out << message(code:"collectory.tag.lib.the.inst.many.which.includes", args:[link(controller: 'public', action: 'show', id: inst.uid), inst.name])
                                 out << "<ul>"
                                 collections.eachWithIndex { co, index ->
-                                    out << "<li>the ${link(controller: 'public', action: 'show', id: co.uid) {collectionName(name: co.name)}}"
+                                    out << "<li>the ${link(controller: 'public', action: 'show', id: co.uid) ${collectionName(name: co.name)}}"
                                     out << (index == collections.size() - 1 ? "." : " and")
                                     out << "</li>"
                                 }
@@ -1630,23 +1631,23 @@ class CollectoryTagLib {
                     out << "</ul>"
                     break;
                 case 'excludes-all':
-                    out << '<span>Records for collections supported by this institution can be viewed on the pages of the related institution' +
-                            (exceptions.childInstitutions.size() > 1 ? 's' : '') + ':</span>'
+                    out << message(code:exceptions.childInstitutions.size() > 1? "collectory.tag.lib.records.for.collections.supported.by.this.institution.can.be.viewed.on.plural":
+                            "collectory.tag.lib.records.for.collections.supported.by.this.institution.can.be.viewed.on"
+                    )
                     out << '<ul>'
                     exceptions.childInstitutions.each {inst ->
                         def collections = inst.listCollections()
                         switch (collections?.size()) {
                             case 0: break
                             case 1:
-                                out << "<li>the ${link(controller: 'public', action: 'show', id: inst.uid) {inst.name}} which includes "
-                                out << "the ${link(controller: 'public', action: 'show', id: collections[0].uid) {collectionName(name: collections[0].name)}}.</li>"
+                                out << message(code:"collectory.tag.lib.the.collection.which.includes.the", args:[link(controller: 'public', action: 'show', id: inst.uid) {inst.name}, link(controller: 'public', action: 'show', id: collections[0].uid) {collectionName(name: collections[0].name)}])
                                 break;
                             default:
-                                out << "the " + link(controller: 'public', action: 'show', id: inst.uid) {inst.name} + " which includes"
+                                out << message(code:"collectory.tag.lib.the.collection.which.includes.many", args:[link(controller: 'public', action: 'show', id: inst.uid), inst.name])
                                 out << "<ul>"
                                 collections.eachWithIndex { co, index ->
                                     out << "<li>the ${link(controller: 'public', action: 'show', id: co.uid) {collectionName(name: co.name)}}"
-                                    out << (index == collections.size() - 1 ? "." : " and")
+                                    out << (index == collections.size() - 1 ? "." : message(code:"collectory.tag.lib.and.with.space.prefix"))
                                     out << "</li>"
                                 }
                                 out << "</ul>"
@@ -1666,14 +1667,13 @@ class CollectoryTagLib {
                             out << ":</span><ul>"
                             exceptions.includes.eachWithIndex { key, value, index ->
                                 out << "<li>the ${link(controller: 'public', action: 'show', id: key) {collectionName(name: value)}}"
-                                out << (index == exceptions.includes.size() - 1 ? "." : " and")
+                                out << (index == exceptions.includes.size() - 1 ? "." : message(code:"collectory.tag.lib.and.with.space.prefix"))
                                 out << "</li>"
                             }
                             out << "</ul>"
                             break;
                     }
-                    out << "<span>Totals and charts for the other collections can be viewed in the related institution" +
-                            (exceptions.childInstitutions.size() > 1 ? "s" : "") + ":</span><ul>"
+                    out << message(code: exceptions.childInstitutions.size() > 1 ? "collectory.tag.lib.totals.and.charts.can.be.viewed.plural" : "collectory.tag.lib.totals.and.charts.can.be.viewed")
                     exceptions.childInstitutions.each { inst ->
                         out << "<li>" + link(controller: 'public', action: 'show', id: inst.uid) {inst.name} + "</li>"
                     }
@@ -1942,15 +1942,13 @@ class CollectoryTagLib {
 
     def lastChecked = { attrs ->
         if (attrs.date) {
-            out << """<span id="updated">This resource was last checked for updated data on
-                <b>${new SimpleDateFormat("dd MMM yyyy").format(attrs.date)}</b>.</span>"""
+            out << message(code:"collectory.tag.lib.last.checked", args:[new SimpleDateFormat("dd MMM yyyy").format(attrs.date)])
         }
     }
 
     def dataCurrency = { attrs ->
         if (attrs.date) {
-            out << """<span id="currency">The most recent data was published on
-                <b>${new SimpleDateFormat("dd MMM yyyy").format(attrs.date)}</b>.</span>"""
+            out << message(code:"collectory.tag.lib.data.currently", args:[new SimpleDateFormat('dd MMM yyyy').format(attrs.date)])
         }
     }
 
@@ -2041,8 +2039,9 @@ class CollectoryTagLib {
      */
     def contentTypes = { attrs ->
         if (attrs.types) {
-            def list = JSON.parse(attrs.types as String).collect {it.toString()}
-            out << '<p>Includes: ' + list.join(', ') + '.</p>'
+            def list = JSON.parse(attrs.types as String).collect {
+                message(code: 'datasets.js.displaytext.' + it.toString().replaceAll(/ /, '_'), default: it.toString())}
+            out << g.message(code: "collection.tab.lib.includes") + " " + list.join(', ') + '.</p>'
         }
     }
 
