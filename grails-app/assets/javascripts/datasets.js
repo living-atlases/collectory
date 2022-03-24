@@ -278,14 +278,14 @@ function showFilters() {
     $('#currentFilter').remove();
     if (currentFilters.length > 0) {
         // create the container
-        $('#currentFilterHolder').append('<div id="currentFilter"><h4><span class="FieldName">Current Filters</span></h4>' +
+        $('#currentFilterHolder').append('<div id="currentFilter"><h4><span class="FieldName">'  + jQuery.i18n.prop("datasets.current.filters") + '</span></h4>' +
                 '<div id="subnavlist"><ul></ul></div></div>');
     }
     $.each(currentFilters, function(index, obj) {
         var displayValue = obj.name == 'contains' ? obj.value : labelFor(obj.value);
         $('#currentFilter #subnavlist ul').append('<li>' + labelFor(obj.name) + ': <b>' + displayValue + '</b>&nbsp;' +
                 '[<b><a href="#" onclick="removeFilter(\'' + obj.name + "','" + obj.value + '\',this);return false;"' +
-                'class="removeLink" title="remove filter">X</a></b>]</li>');
+                'class="removeLink" title="' + jQuery.i18n.prop("datasets.remove.filter") + '">X</a></b>]</li>');
     });
 }
 /** adds a filter and re-filters list**/
@@ -605,6 +605,14 @@ function sortByCount(map) {
 /* returns a display label for the facet */
 function labelFor(item) {
     var text = displayText[item];
+    if (text == undefined) {
+        // Let's try to find with a prefix
+        var textTranslated = jQuery.i18n.prop('datasets.js.displaytext.' + item.replace(/ /g, "_"));
+        // If not exist will start with this prefix
+        if (!textTranslated.startsWith("[datasets.js.displaytext")) {
+            text = textTranslated;
+        }
+    }
     if (text == undefined) {
         // just capitalise - TODO: break out camel case
         text = capitalise(item);
