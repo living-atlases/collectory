@@ -159,8 +159,9 @@
 
                         <div class="webSite">
                             <a class='external' target="_blank"
-                               href="${instance.websiteUrl}"><g:message code="public.si.website.link01" /> <cl:institutionType
-                                    inst="${instance}"/><g:message code="public.si.website.link02" /></a>
+                               href="${instance.websiteUrl}"><g:message code="public.si.website.link.param"
+                                                                        args="${[g.message(code:'public.si.website.link.param.'
+                                                                                + cl.institutionType(inst:instance))]}"/></a>
                         </div>
                     </section>
                 </g:if>
