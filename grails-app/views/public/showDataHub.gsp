@@ -81,7 +81,7 @@
           <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
         </g:if>
         <g:if test="${instance.focus}">
-          <h2><g:message code="public.sdh.co.label02" /></h2>
+          <h2><g:message code="public.sdh.co.label02.param" args="${[grailsApplication.config.skin.orgNameShort]}" /></h2>
           <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
         </g:if>
 
