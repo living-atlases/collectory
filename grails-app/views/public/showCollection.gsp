@@ -141,7 +141,7 @@
                             <div class="col-md-8">
                                 <h2><g:message code="public.show.rt.title" /></h2>
                                 <g:if test="${instance.numRecords != -1}">
-                                    <p><cl:collectionName prefix="${g.message(code:'collection.tag.lib.collection.prefix')}" name="${instance.name}"/> has an estimated ${fieldValue(bean: instance, field: "numRecords")} ${nouns}.
+                                    <p><cl:collectionName prefix="${g.message(code:'collection.tag.lib.collection.prefix')}" name="${instance.name}"/> <g:message code="public.show.collection.has.an.estimated" args="[fieldValue(bean: instance, field: "numRecords"), nouns]" />.
                                         <g:if test="${instance.numRecordsDigitised != -1}">
                                             <br/><g:message code="public.show.rt.des01" /> <cl:percentIfKnown dividend='${instance.numRecordsDigitised}' divisor='${instance.numRecords}'/> <g:message code="public.show.rt.des02" /> (${fieldValue(bean: instance, field: "numRecordsDigitised")} <g:message code="public.show.rt.des03" />).
                                         </g:if>

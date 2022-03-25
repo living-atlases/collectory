@@ -53,7 +53,7 @@ function setProgress(percentage){
         var displayPercent = percentage.toFixed(1);
         if (percentage < 0.1) {displayPercent = percentage.toFixed(2)}
         if (percentage > 20) {displayPercent = percentage.toFixed(0)}
-        if (percentage > 100) {displayPercent = "over 100"}
+        if (percentage > 100) {displayPercent = jQuery.i18n.prop('public.show.percent.over')}
         captionText = jQuery.i18n.prop('public.show.percentrecords.01', displayPercent, noun, orgNameLong);
     }
     $('#speedoCaption').html(captionText);
