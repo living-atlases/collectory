@@ -139,6 +139,7 @@ skin:
     homeUrl: http://www.ala.org.au
     orgNameLong: Atlas of Living Australia
     orgNameShort: Atlas
+    orgSupportEmail: support@ala.org.au
     favicon: https://www.ala.org.au/app/uploads/2019/01/cropped-favicon-32x32.png
 
 headerAndFooter:
