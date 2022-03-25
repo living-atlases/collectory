@@ -694,9 +694,17 @@ class CollectoryTagLib {
     def stateCoverage = {attrs ->
         if (!attrs.states) return
         if (attrs.states.toLowerCase() in ["all", "all states", "australian states"]) {
-            out << "All Australian states are covered."
+            if ( grailsApplication.config.skin.orgNameShort == 'ALA') {
+                out << message(code:"collectory.tag.lib.all.australian.states.covered")
+            } else {
+                out << message(code:"collectory.tag.lib.all.states.are.covered")
+            }
         } else {
-            out << "Australian states covered include: " + attrs.states.encodeAsHTML() + "."
+            if ( grailsApplication.config.skin.orgNameShort == 'ALA') {
+                out << message(code:"collectory.tag.lib.australian.states.covered.include", args:[attrs.states.encodeAsHTML()])
+            } else {
+                out << message(code:"collectory.tag.lib.states.covered.include", args:[attrs.states.encodeAsHTML()])
+            }
         }
     }
 
