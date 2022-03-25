@@ -89,13 +89,13 @@
             <div id="list" class="tab-pane">
               <div  class="list-column">
                 <div class="nameList section" id="names">
-                  <p><span id="numFilteredCollections"><g:message code="public.map3.maplistcol.des03" /></span>. <g:message code="public.map3.maplistcol.des04" /> <img style="vertical-align:middle" src="${resource(dir:'images/map', file:'nomap.gif')}"/>.</p>
+                  <p><span id="numFilteredCollections"><g:message code="public.map3.maplistcol.des03" /></span>. <g:message code="public.map3.maplistcol.des04" /> <img style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>.</p>
                   <ul id="filtered-list" style="padding-left:15px;">
                     <g:each var="c" in="${collections}" status="i">
                       <li>
                         <g:link controller="public" action="show" id="${c.uid}">${fieldValue(bean: c, field: "name")}</g:link>
                         <g:if test="${!c.canBeMapped()}">
-                          <img style="vertical-align:middle" src="${resource(dir:'images/map', file:'nomap.gif')}"/>
+                          <img style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>
                         </g:if>
                       </li>
                     </g:each>
