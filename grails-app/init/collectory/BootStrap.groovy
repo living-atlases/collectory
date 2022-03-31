@@ -11,7 +11,7 @@ class BootStrap {
                 "WEB-INF/grails-app/i18n/messages",
                 "classpath:messages",
                 // In case we want to reuse biocache-service i18n messages:
-                // "${application.config.biocache.baseUrl}/facets/i18n"
+                "${application.config.biocacheServicesUrl}/facets/i18n"
         )
 
     }
