@@ -10,7 +10,6 @@ class BootStrap {
                 "file:///opt/atlas/i18n/collectory-plugin/messages",
                 "WEB-INF/grails-app/i18n/messages",
                 "classpath:messages",
-                // In case we want to reuse biocache-service i18n messages:
                 "${application.config.biocacheServicesUrl}/facets/i18n"
         )
 
