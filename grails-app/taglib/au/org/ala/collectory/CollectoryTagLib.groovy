@@ -730,7 +730,7 @@ class CollectoryTagLib {
     }
 
     def emailBugLink = { attrs, body ->
-        def strEncodedAtSign = "(SPAM_MAIL@ALA.ORG.AU)"
+        def strEncodedAtSign = "PUT_ONLY_AN_@_SIGN_HERE"
         String email = attrs.email
         if (!email)
             email = body().toString()
@@ -739,7 +739,8 @@ class CollectoryTagLib {
         if (index > 0) {
             email = email.replaceAll("@", strEncodedAtSign)
         }
-        out << "<a href='#' class='link' onclick=\"return sendBugEmail('${email}','${attrs.message}')\">${body()}</a>"
+        def subject = "I found an issue in ${grailsApplication.config.skin.orgNameShort}"
+        out << "<a href='#' class='link' onclick=\"function sendBugEmail(n,o){console.log(n);console.log(o);var e='mailto:'+n+'?subject='+encodeURIComponent('$subject')+'&body='+o; console.log(e); window.location.href=e};return sendBugEmail('${email}','${attrs.message.encodeAsURL().replace("+", "%20")}')\">${body()}</a>"
     }
 
     /**

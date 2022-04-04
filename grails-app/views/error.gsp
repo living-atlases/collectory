@@ -34,7 +34,9 @@
 		  <p>If this is the first time this page has appeared, <span class="action">try the refresh button in your browser.</span></p>
 		  <p>If this fails, <span class="action">try to return to the <a href="/collectory">home page</a> and start again.</span></p>
 		  <p>If this page is still displayed, <span class="action">please report the incident to ${grailsApplication.config.skin.orgNameShort} support.
-		  <cl:emailBugLink email="${grailsApplication.config.skin.orgSupportEmail}" message="${exception?.message}">Click here to email ${grailsApplication.config.skin.orgNameShort} support</cl:emailBugLink>.</span></p>
+		  <cl:emailBugLink email="${grailsApplication.config.skin.orgSupportEmail}"
+              message="Technical details of the error:\n\nError ${request.'javax.servlet.error.status_code'}: ${request.'javax.servlet.error.message'}\nServlet: ${request.'javax.servlet.error.servlet_name'}\nCaused by: ${exception.cause?.message}\nClass: ${exception.className}\nAt Line: ${exception.lineNumber}\n\nStacktrace: ${exception.stackTraceLines?.toString()}">
+			  Click here to email ${grailsApplication.config.skin.orgNameShort} support</cl:emailBugLink>.</span></p>
 		  <p>The following is useful information that helps us discover what has happened. Please copy it into emails requesting support.</p>
 		  <p>You might also like to expand the more detailed information by clicking on 'Show stack trace' and copying that text to us as well.</p>
 		  <p>Thanks for your patience.</p>
