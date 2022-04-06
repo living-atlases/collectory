@@ -4,7 +4,8 @@
 function loadImagesTab() {
     var wsBase = "/occurrences/search.json";
     var uiBase = "/occurrences/search";
-    var imagesQueryUrl = "?facets=type_status&fq=multimedia%3AImage&pageSize=100&q=collectionUid:" + SHOW_REC.instanceUuid;
+
+    var imagesQueryUrl = "?facets=type_status&fq=multimedia%3AImage&pageSize=100&q=" + (SHOW_REC.isPipelinesCompatible? "collectionUid:" : "collection_uid:") + SHOW_REC.instanceUuid;
     $.ajax({
         url: SHOW_REC.biocacheServicesUrl + wsBase + imagesQueryUrl,
         dataType: 'jsonp',

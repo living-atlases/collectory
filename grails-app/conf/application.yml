@@ -191,6 +191,7 @@ disableAlertLinks: false
 disableLoggerLinks: false
 biocacheServicesUrl: https://biocache.ala.org.au/ws
 biocacheUiURL: https://biocache.ala.org.au
+isPipelinesCompatible: true
 
 ROLE_ADMIN: 'ROLE_ADMIN'
 

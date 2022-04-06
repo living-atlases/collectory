@@ -1,5 +1,6 @@
 <%@ page import="java.text.DecimalFormat; au.org.ala.collectory.Collection; au.org.ala.collectory.Institution" %>
 <g:set var="orgNameLong" value="${grailsApplication.config.skin.orgNameLong}"/>
+<g:set var="isPipelinesCompatible" value="${grailsApplication.config.getProperty("isPipelinesCompatible", Boolean.class)}"/>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -24,6 +25,7 @@
               biocacheWebappUrl: "${grailsApplication.config.biocacheUiURL}",
               loggerServiceUrl: "${grailsApplication.config.loggerURL}",
               loadLoggerStats: ${!grailsApplication.config.disableLoggerLinks.toBoolean()},
+              isPipelinesCompatible: ${isPipelinesCompatible},
               instanceUuid: "${instance.uid}",
               instanceName:"${instance.name}"
           }
@@ -306,7 +308,7 @@
             }
             loadImagesTab();
         </asset:script>
-        <g:render template="charts" model="[facet:'collectionUid', instance: instance]" />
-        <g:render template="progress" model="[facet:'collection_uid', instance: instance]" />
+        <g:render template="charts" model="[facet: isPipelinesCompatible ? 'collectionUid': 'collection_uid', instance: instance]" />
+        <g:render template="progress" model="[facet: isPipelinesCompatible ? 'collectionUid':'collection_uid', instance: instance]" />
     </body>
 </html>
