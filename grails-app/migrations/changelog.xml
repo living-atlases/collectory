@@ -20,47 +20,6 @@ liquibase.command.referenceUrl: jdbc:mysql://localhost:3306/collectory_dev?autoR
 liquibase.command.referenceUsername: collectory
 liquibase.command.referencePassword: XXXXX
 -->
-    <changeSet author="ALA Dev Team" id="1647535601585-83">
-        <preConditions onFail="MARK_RAN">
-            <!-- With MARK_RAN we skip this step as probably was already migrated -->
-            <not>
-                <columnExists tableName="data_resource" columnName="citable_agent" />
-            </not>
-        </preConditions>
-        <addColumn tableName="data_resource">
-            <column name="citable_agent" type="VARCHAR(2048 BYTE)"/>
-        </addColumn>
-    </changeSet>
-    <changeSet author="ALA Dev Team" id="1647535601585-84">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="data_resource" columnName="display_name" />
-            </not>
-        </preConditions>
-        <addColumn tableName="data_resource">
-            <column name="display_name" type="VARCHAR(1024 BYTE)"/>
-        </addColumn>
-    </changeSet>
-    <changeSet author="ALA Dev Team" id="1647535601585-85">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="data_resource" columnName="contributor" />
-            </not>
-        </preConditions>
-        <addColumn tableName="data_resource">
-            <column name="contributor" type="BIT(1)"/>
-        </addColumn>
-    </changeSet>
-    <changeSet author="ALA Dev Team" id="1647535601585-86">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="data_resource" columnName="last_harvested" />
-            </not>
-        </preConditions>
-        <addColumn tableName="data_resource">
-            <column name="last_harvested" type="DATETIME"/>
-        </addColumn>
-    </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-87">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -175,22 +134,22 @@ liquibase.command.referencePassword: XXXXX
         <dropUniqueConstraint constraintName="collection_id" tableName="provider_map"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-1">
-        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="collection"/>
+        <modifyDataType columnName="attributions" newDataType="varchar(256)" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-2">
-        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_hub"/>
+        <modifyDataType columnName="attributions" newDataType="varchar(256)" tableName="data_hub"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-3">
-        <addNotNullConstraint columnDataType="varchar(255)" columnName="attributions" tableName="data_hub" validate="true"/>
+        <addNotNullConstraint columnDataType="varchar(256)" columnName="attributions" tableName="data_hub" validate="true"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-4">
-        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_provider"/>
+        <modifyDataType columnName="attributions" newDataType="varchar(256)" tableName="data_provider"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-5">
-        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="data_resource"/>
+        <modifyDataType columnName="attributions" newDataType="varchar(256)" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-6">
-        <modifyDataType columnName="attributions" newDataType="varchar(255)" tableName="institution"/>
+        <modifyDataType columnName="attributions" newDataType="varchar(256)" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-7">
         <modifyDataType columnName="citation" newDataType="varchar(4096)" tableName="data_resource"/>
@@ -220,19 +179,19 @@ liquibase.command.referencePassword: XXXXX
         <modifyDataType columnName="focus" newDataType="varchar(2048)" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-16">
-        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="collection"/>
+        <modifyDataType columnName="guid" newDataType="varchar(256)" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-17">
-        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="data_hub"/>
+        <modifyDataType columnName="guid" newDataType="varchar(256)" tableName="data_hub"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-18">
-        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="data_provider"/>
+        <modifyDataType columnName="guid" newDataType="varchar(256)" tableName="data_provider"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-19">
-        <modifyDataType columnName="guid" newDataType="varchar(100)" tableName="data_resource"/>
+        <modifyDataType columnName="guid" newDataType="varchar(256)" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-20">
-        <modifyDataType columnName="guid" newDataType="varchar(45)" tableName="institution"/>
+        <modifyDataType columnName="guid" newDataType="varchar(256)" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-21">
         <modifyDataType columnName="harvesting_notes" newDataType="longtext" tableName="data_resource"/>
@@ -289,10 +248,10 @@ liquibase.command.referencePassword: XXXXX
         <modifyDataType columnName="mobilisation_notes" newDataType="longtext" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-39">
-        <modifyDataType columnName="name" newDataType="varchar(128)" tableName="collection"/>
+        <modifyDataType columnName="name" newDataType="varchar(1024)" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-40">
-        <modifyDataType columnName="name" newDataType="varchar(128)" tableName="institution"/>
+        <modifyDataType columnName="name" newDataType="varchar(1024)" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-41">
         <modifyDataType columnName="name" newDataType="varchar(45)" tableName="sequence"/>
@@ -330,23 +289,20 @@ liquibase.command.referencePassword: XXXXX
     <changeSet author="ALA Dev Team" id="1647535601585-52">
         <modifyDataType columnName="permissions_document" newDataType="longtext" tableName="data_resource"/>
     </changeSet>
-    <changeSet author="ALA Dev Team" id="1647535601585-53">
-        <modifyDataType columnName="persisted_object_id" newDataType="bigint(19)" tableName="audit_log"/>
-    </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-54">
-        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="collection"/>
+        <modifyDataType columnName="phone" newDataType="varchar(200)" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-55">
-        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_hub"/>
+        <modifyDataType columnName="phone" newDataType="varchar(200)" tableName="data_hub"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-56">
-        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_provider"/>
+        <modifyDataType columnName="phone" newDataType="varchar(200)" tableName="data_provider"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-57">
-        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="data_resource"/>
+        <modifyDataType columnName="phone" newDataType="varchar(200)" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-58">
-        <modifyDataType columnName="phone" newDataType="varchar(45)" tableName="institution"/>
+        <modifyDataType columnName="phone" newDataType="varchar(200)" tableName="institution"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-59">
         <modifyDataType columnName="prefix" newDataType="varchar(5)" tableName="sequence"/>
@@ -373,7 +329,7 @@ liquibase.command.referencePassword: XXXXX
         <modifyDataType columnName="scientific_names" newDataType="varchar(2048)" tableName="collection"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-67">
-        <modifyDataType columnName="status" newDataType="varchar(255)" tableName="data_resource"/>
+        <modifyDataType columnName="status" newDataType="varchar(45)" tableName="data_resource"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-68">
         <dropNotNullConstraint columnDataType="varchar(255)" columnName="status" tableName="data_resource"/>
