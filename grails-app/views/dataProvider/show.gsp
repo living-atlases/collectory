@@ -84,8 +84,8 @@
                   <p class="iptStatus alert alert-info hide" style="word-break: break-all;">
                   </p>
                   <p>
-                    <button class="iptCheck iptBtn btn btn-default"><asset:image class="spinner hide" uri="/images/spinner.gif"></asset:image> Check endpoint</button>
-                    <button class="iptUpdate iptBtn btn btn-warning"><asset:image class="spinner hide" uri="/images/spinner.gif"></asset:image> Update data resources</button>
+                    <button class="iptCheck iptBtn btn btn-default"><g:img class="spinner hide" uri="/static/images/spinner.gif"/> Check endpoint</button>
+                    <button class="iptUpdate iptBtn btn btn-warning"><g:img class="spinner hide" uri="/static/images/spinner.gif"/> Update data resources</button>
                     <g:link controller="ipt" action="syncReport" params="${['uid':instance.uid]}" class="downloadSync iptBtn btn btn-info">
                         <i class="glyphicon glyphicon-download"> </i>
                         Download sync report</g:link>
@@ -181,7 +181,7 @@
         function checkIptInstance(){
             $('.iptCheck .spinner').removeClass('hide');
             $('.iptBtn').attr('disabled','disabled');
-            var checkUrl = "${createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, check:true])}";
+            var checkUrl = "${raw(createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, check:true, create: false]))}";
             var jqxhr = $.get(checkUrl, function(data) {
               $('.iptStatus').html("Success! IPT instance has " + data.length + " resources available." );
               $('.iptStatus').removeClass('hide')
@@ -198,17 +198,17 @@
         function updateResourcesFromIpt(){
             $('.iptUpdate .spinner').removeClass('hide');
             $('.iptBtn').attr('disabled','disabled');
-            var updateUrl = "${createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, create:true])}";
+            var updateUrl = "${raw(createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, create:true, check: false]))}";
             var jqxhr = $.get(updateUrl, function(data) {
               console.log(data)
-              var updateText = "Success! <br/><br/> " + data.length + " resources have been added from this IPT instance."
+              var updateText = "Success! <br/><br/> " + data.length + " resources have been added or updated from this IPT instance."
               var added = [];
               $.each( data, function( key, value ) {
                 added.push(value.uid);
               });
 
               if(added.length > 0){
-                  updateText = updateText + "<br/><br/> Resources added: " + added.join(',')
+                  updateText = updateText + "<br/><br/> Resources added or updated: " + added.join(',')
               }
 
               $('.iptStatus').html(updateText);
