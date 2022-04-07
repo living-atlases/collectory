@@ -18,13 +18,14 @@ class EmlImportService {
         guid:  { eml -> eml.@packageId.toString() },
         pubDescription: { eml -> this.collectParas(eml.dataset.abstract?.para) },
         name: { eml -> eml.dataset.title.toString() },
-        email: { eml ->  eml.dataset.contact?.electronicMailAddress?.text() },
+        email: { eml ->  eml.dataset.contact.size() > 0 ? eml.dataset.contact[0]?.electronicMailAddress?.text(): null },
         rights: { eml ->  this.collectParas(eml.dataset.intellectualRights?.para) },
         citation: { eml ->  eml.additionalMetadata?.metadata?.gbif?.citation?.text() },
         state: { eml ->
 
             def state = ""
-            def administrativeAreas = eml.dataset.contact?.address?.administrativeArea
+
+            def administrativeAreas = eml.dataset.contact.size() > 0 ? eml.dataset.contact[0]?.address?.administrativeArea: null
             if (administrativeAreas){
 
                 if (administrativeAreas.size() > 1){
@@ -38,7 +39,7 @@ class EmlImportService {
             }
             state
         },
-        phone: { eml ->  eml.dataset.contact?.phone?.text() },
+        phone: { eml ->  eml.dataset.contact.size() > 0 ? eml.dataset.contact[0]?.phone?.text(): null },
 
         //geographic coverage
         geographicDescription: { eml -> eml.dataset.coverage?.geographicCoverage?.geographicDescription?:'' },
