@@ -64,7 +64,7 @@
             <!-- logo -->
             <g:if test="${fieldValue(bean: instance, field: 'logoRef') && fieldValue(bean: instance, field: 'logoRef.file')}">
                 <section class="public-metadata">
-                    <img class="institutionImage" src='${resource(absolute:"true", dir:"data/"+instance.urlForm()+"/",file:fieldValue(bean: instance, field: 'logoRef.file'))}' />
+                    <img class="institutionImage" src='${resource(absolute:"true", dir:"data/"+instance.urlForm()+"/",file:instance.logoRef.file)}' />
                 </section>
             </g:if>
           </div>
