@@ -21,24 +21,15 @@
 
       biocacheServicesUrl = "${grailsApplication.config.biocacheServicesUrl}";
       biocacheWebappUrl = "${grailsApplication.config.biocacheUiURL}";
-
-      $(document).ready(function() {
-        $("a#lsid").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                    'autoDimensions' : false,
-                    'width' : 600,
-                    'height' : 180
-        });
-        $("a.current").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                    'titlePosition' : 'inside',
-                    'autoDimensions' : true,
-                    'width' : 300
-        });
-      });
     </script>
+    <script type="text/javascript">
+      var COLLECTORY_CONF = {
+        contextPath: "${request.contextPath}",
+        locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
+        cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+      };
+    </script>
+    <asset:javascript src="application-pages.js"/>
   </head>
   <body class="two-column-right">
     <div id="content">
@@ -110,6 +101,10 @@
             <cl:valueOrOtherwise value="${instance.imageRef?.copyright}"><p class="caption">${fieldValue(bean: instance, field: "imageRef.copyright")}</p></cl:valueOrOtherwise>
           </section>
         </g:if>
+
+        <div id="dataAccessWrapper" style="display:none;">
+          <g:render template="dataAccess" model="[instance:instance]"/>
+        </div>
 
         <section class="public-metadata">
           <h4><g:message code="public.location" /></h4>
