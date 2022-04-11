@@ -130,7 +130,7 @@ liquibase.command.referencePassword: XXXXX
             <column name="uid"/>
         </createIndex>
     </changeSet>
-    <changeSet author="ALA Dev Team" id="1647535601585-104">
+    <changeSet author="ALA Dev Team" id="1647535601585-104" failOnError="false">
         <dropUniqueConstraint constraintName="collection_id" tableName="provider_map"/>
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-1">
