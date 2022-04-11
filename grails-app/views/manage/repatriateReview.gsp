@@ -11,6 +11,13 @@
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title><g:message code="manage.extloadr.title" /></title>
     <asset:stylesheet src="application.css"/>
+    <script type="text/javascript">
+      var COLLECTORY_CONF = {
+        contextPath: "${request.contextPath}",
+        locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
+        cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+      };
+    </script>
     <asset:javascript src="application-pages.js"/>
 </head>
 <body>
@@ -77,9 +84,6 @@
             </tr>
             </g:each>
             </g:if>
-            <g:else>
-                <tr><td colspan="8"><g:message code="manage.extloadr.noresources"/></td></tr>
-            </g:else>
             </tbody>
         </table>
         <div>
@@ -123,12 +127,16 @@
             select: "single"
         });
         resource_table = $('#resource-table').DataTable({
+            "language": {
+               "emptyTable": jQuery.i18n.prop('manage.extloadr.noresources'),
+            },
             "columns": [
                 {"orderable": false},
                 null,
                 null,
                 null,
                 null,
+                {"orderable": false},
                 {"orderable": false},
                 {"orderable": false},
                 {"orderable": false}
