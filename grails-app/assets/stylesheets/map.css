@@ -248,6 +248,7 @@ ul.facets {
 
 .resource-name {
     width: 20em;
+    min-width: 200px;
 }
 
 .resource-mapping {
