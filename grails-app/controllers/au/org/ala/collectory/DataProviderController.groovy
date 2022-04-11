@@ -61,7 +61,7 @@ class DataProviderController extends ProviderGroupController {
 
             if (organizations){
                 log.info "Search for organizations returned " + organizations.size()+" organizations for country = " + countryCode
-                organizations.each { organization ->
+                for (organization in organizations) {
                     def dp = DataProvider.findByGbifRegistryKey(organization.key)
                     if (dp) {
                         log.info "Organization "+organization.key+" is already imported as data provider = " + dp.uid

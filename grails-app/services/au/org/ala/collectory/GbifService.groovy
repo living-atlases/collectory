@@ -569,7 +569,7 @@ class GbifService {
             def name = isoMap.get(it)
             pubMap.put(it, name)
         }
-        return pubMap
+        return pubMap.sort { it.value }
     }
 
     def Date getGbifDatasetLastUpdated(String guid){

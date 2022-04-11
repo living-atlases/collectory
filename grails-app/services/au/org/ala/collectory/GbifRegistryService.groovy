@@ -43,7 +43,7 @@ class GbifRegistryService {
 
     // URL templates for the GBIF API relative to the base GBIF API url (e.g. https://api.gbif.org)
     static final String API_ORGANIZATION = "organization"
-    static final String API_ORGANIZATION_COUNTRY_LIMIT = "organization?country{0}&limit={1}"
+    static final String API_ORGANIZATION_COUNTRY_LIMIT = "organization?country={0}&limit={1}"
     static final String API_ORGANIZATION_DETAIL = "organization/{0}"
     static final String API_ORGANIZATION_CONTACT = "organization/{0}/contact"
     static final String API_ORGANIZATION_CONTACT_DETAIL = "organization/{0}/contact/{1}"
@@ -638,14 +638,14 @@ class GbifRegistryService {
         def http = newHttpInstance()
         HttpGet httpGet = new HttpGet(
                 grailsApplication.config.gbifApiUrl +
-                        MessageFormat.format(API_ORGANIZATION_COUNTRY_LIMIT, countryCode, limit))
+                        MessageFormat.format(API_ORGANIZATION_COUNTRY_LIMIT, countryCode, limit.toString()))
         HttpResponse httpResponse = http.execute(httpGet)
         if (isSuccess(httpResponse)){
             ByteArrayOutputStream bos = new ByteArrayOutputStream()
             httpResponse.getEntity().writeTo(bos)
             String respText = bos.toString();
             JsonSlurper slurper = new JsonSlurper()
-            return slurper.parseText(respText)
+            return slurper.parseText(respText)?.results
         } else {
             log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_COUNTRY_LIMIT} with ${countryCode} and ${limit}")
             [:]
