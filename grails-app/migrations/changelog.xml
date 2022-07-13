@@ -20,6 +20,15 @@ liquibase.command.referenceUrl: jdbc:mysql://localhost:3306/collectory_dev?autoR
 liquibase.command.referenceUsername: collectory
 liquibase.command.referencePassword: XXXXX
 -->
+    <changeSet author="ALA Dev Team" id="1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="data_resource"/>
+            </not>
+        </preConditions>
+        <comment>Initialize schema</comment>
+        <sqlFile path="initial.sql" relativeToChangelogFile="true" encoding="ISO-8859-1" stripComments="1" />
+    </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-87">
         <preConditions onFail="MARK_RAN">
             <not>

@@ -374,7 +374,7 @@ environments:
                 sentry:
                     active: false
         dataSource:
-            dbCreate: update
+            dbCreate: none
             url: jdbc:mysql://localhost:3306/collectory?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
     test:
         grails:
