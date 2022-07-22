@@ -119,7 +119,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
         }
 
         while (!atEnd) {
-            getLOGGER().info("Requesting dataset lists configuration.country: ${configuration.country} offset: ${offset}, pageSize: ${pageSizeToUse}, ${configuration.dataProviderUid}")
+            getLOGGER().info("Requesting dataset lists configuration.country: ${configuration.country} offset: ${offset}, pageSize: ${pageSizeToUse}, dataProvider: ${configuration.dataProviderUid}")
             def optionalProvider
             if (configuration.dataProviderUid){
                 optionalProvider = DataProvider.findByUid(configuration.dataProviderUid)
