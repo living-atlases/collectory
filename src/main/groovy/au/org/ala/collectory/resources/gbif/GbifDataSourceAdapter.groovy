@@ -1,5 +1,6 @@
 package au.org.ala.collectory.resources.gbif
 
+import au.org.ala.collectory.DataProvider
 import au.org.ala.collectory.DataResource
 import au.org.ala.collectory.DataSourceConfiguration
 import au.org.ala.collectory.ExternalResourceBean
@@ -36,6 +37,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
     static final LOGGER = LoggerFactory.getLogger(GbifDataSourceAdapter.class)
     static final SOURCE = "GBIF"
     static final MessageFormat DATASET_SEARCH = new MessageFormat("dataset/search?publishingCountry={0}&type={1}&offset={2}&limit={3}")
+    static final MessageFormat DATASET_SEARCH_PROV = new MessageFormat("dataset/search?publishingCountry={0}&type={1}&offset={2}&limit={3}&publishingOrg={4}")
     static final MessageFormat DATASET_GET = new MessageFormat("dataset/{0}")
     static final MessageFormat DATASET_RECORD_COUNT = new MessageFormat("occurrence/count?datasetKey={0}")
     static final MessageFormat DOWNLOAD_STATUS = new MessageFormat("occurrence/download/{0}")
@@ -117,8 +119,17 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
         }
 
         while (!atEnd) {
-            getLOGGER().info("Requesting dataset lists configuration.country: ${configuration.country} offset: ${offset}, pageSize: ${pageSizeToUse}")
-            JSONObject json = getJSONWS(DATASET_SEARCH.format([configuration.country, configuration.recordType, offset.toString(), pageSizeToUse.toString()].toArray()))
+            getLOGGER().info("Requesting dataset lists configuration.country: ${configuration.country} offset: ${offset}, pageSize: ${pageSizeToUse}, ${configuration.dataProviderUid}")
+            def optionalProvider
+            if (configuration.dataProviderUid){
+                optionalProvider = DataProvider.findByUid(configuration.dataProviderUid)
+            }
+            JSONObject json = getJSONWS(
+                    optionalProvider == null ?
+                    DATASET_SEARCH.format([configuration.country, configuration.recordType, offset.toString(), pageSizeToUse.toString()].toArray()):
+                    DATASET_SEARCH_PROV.format([configuration.country, configuration.recordType, offset.toString(), pageSizeToUse.toString(), optionalProvider.gbifRegistryKey].toArray())
+            )
+
             if (json?.results) {
                 json.results.each {
                     keys << it.key
