@@ -747,8 +747,8 @@ class GbifRegistryService {
         if (dp.websiteUrl) {
             organisation.homepage = [dp.websiteUrl]
         }
-        organisation.latitude = Math.floor(dp.latitude as float) == -1.0 ? null : dp.latitude
-        organisation.longitude = Math.floor(dp.longitude as float) == -1.0 ? null : dp.longitude
+        organisation.latitude = dp.latitude == null? null : Math.floor(dp.latitude as float) == -1.0 ? null : dp.latitude
+        organisation.longitude = dp.longitude == null? null : Math.floor(dp.longitude as java.lang.Float) == -1.0 ? null : dp.longitude
         if (dp.buildLogoUrl()) {
             organisation.logoUrl = dp.buildLogoUrl()
         }
