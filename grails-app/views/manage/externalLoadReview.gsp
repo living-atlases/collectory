@@ -17,7 +17,7 @@
 
 <h1>
     <g:if test="${dataProvider?.name}">
-        <g:message code="manage.extloadr.title01" args="${[ configuration.name, dataProvider?.name ?: 'none' ]}"/>
+        <g:message code="manage.extloadr.title01" args="${[ configuration.country, dataProvider?.name ?: 'none' ]}"/>
     </g:if>
     <g:else>
         <g:message code="manage.extloadr.title01.noprovider" />
