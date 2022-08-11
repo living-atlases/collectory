@@ -20,14 +20,15 @@ class ProviderCodeController {
     }
 
     def save() {
-        def providerCodeInstance = new ProviderCode(params)
-        if (!providerCodeInstance.save(flush: true)) {
-            render(view: "create", model: [providerCodeInstance: providerCodeInstance])
-            return
+        ProviderCode.withTransaction {
+            def providerCodeInstance = new ProviderCode(params)
+            if (!providerCodeInstance.save(flush: true)) {
+                render(view: "create", model: [providerCodeInstance: providerCodeInstance])
+                return
+            }
+            flash.message = message(code: 'default.created.message', args: [message(code: 'providerCode.label', default: 'ProviderCode'), providerCodeInstance.id])
+            redirect(action: "show", id: providerCodeInstance.id)
         }
-
-        flash.message = message(code: 'default.created.message', args: [message(code: 'providerCode.label', default: 'ProviderCode'), providerCodeInstance.id])
-        redirect(action: "show", id: providerCodeInstance.id)
     }
 
     def show(Long id) {
