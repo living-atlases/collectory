@@ -8,5 +8,6 @@
 //= require jquery-3.3.1.min
 //= require jquery.i18n.properties-1.0.9.min
 //= require jquery.ba-bbq.min
+//= require moment-with-locales.min.js
 //= require datasets.js
 //= require_self

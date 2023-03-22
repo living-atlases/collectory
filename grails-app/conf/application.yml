@@ -207,6 +207,8 @@ disableLoggerLinks: false
 biocacheServicesUrl: https://biocache.ala.org.au/ws
 biocacheUiURL: https://biocache.ala.org.au
 isPipelinesCompatible: true
+showExtraInfoInDataSetsView.enabled: false
+showExtraInfoInDataSetsView.relativeTime: false
 
 ROLE_ADMIN: 'ROLE_ADMIN'
 ROLE_EDITOR: 'ROLE_EDITOR'

@@ -8,7 +8,9 @@
           var COLLECTORY_CONF = {
               contextPath: "${request.contextPath}",
               locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
-              cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+              cartodbPattern: "${grailsApplication.config.cartodb.pattern}",
+              showExtraInfoInDataSetsView: ${grailsApplication.config.getProperty("showExtraInfoInDataSetsView.enabled", Boolean.class)},
+              showExtraInfoInDataSetsViewRelativeTime: ${grailsApplication.config.getProperty("showExtraInfoInDataSetsView.relativeTime", Boolean.class)}
           };
           var CHARTS_CONFIG = {
               biocacheServicesUrl: "https://biocache-ws.ala.org.au/ws",
@@ -116,7 +118,7 @@
   <asset:script>
       var altMap = true;
       $(document).ready(function() {
-          loadResources("${grailsApplication.config.grails.serverURL}","${grailsApplication.config.biocacheUiURL}");
+          loadResources("${grailsApplication.config.grails.serverURL}","${grailsApplication.config.biocacheUiURL}","${grailsApplication.config.biocacheServicesUrl}");
           $('select#per-page').change(onPageSizeChange);
           $('select#sort').change(onSortChange);
           $('select#dir').change(onDirChange);

@@ -32,6 +32,9 @@ var allResources;
 /* holds current filtered list */
 var resources;
 
+/* holds resources facet for stats */
+var rersourcesStats;
+
 /* list of filters currently in effect - items are {name, value} */
 var currentFilters = [];
 
@@ -50,29 +53,50 @@ var biocacheUrl;
 /* options for all tooltips */
 var tooltipOptions = {position:{my: 'left bottom', at: 'center top-10'}, show: {duration: 130, effect:'fade'}, hide: {duration: 200, effect:'fade'}, collision: "fit"};
 
+function drCount(dr) {
+    try {
+        return resourcesStats[0].fieldResult.find((result) => result.fq.includes(dr)).count;
+    }
+    catch (e) {
+        return -1;
+    }
+}
+
 /** load resources and show first page **/
-function loadResources(serverUrl, biocacheRecordsUrl) {
+function loadResources(serverUrl, biocacheRecordsUrl, biocacheServicesUrl) {
     baseUrl = serverUrl;
     biocacheUrl = biocacheRecordsUrl;
-    $.getJSON(baseUrl + "/public/condensed.json", function(data) {
-        allResources = data;
-        // no filtering at this stage
-        resources = allResources;
 
-        setStateFromHash();
-        updateTotal();
-        calculateFacets();
-        showFilters();
-        resources.sort(comparator);
-        displayPage();
-        wireDownloadLink();
-        wireSearchLink();
+    function loadResourcesCondensed() {
+        $.getJSON(baseUrl + "/public/condensed.json", function (data) {
+            allResources = data;
+            // no filtering at this stage
+            resources = allResources;
 
-        // set up tooltips
-        // - don't do download link because the title changes and the tooltip app does not update
-        // - also limit to content to exclude links in header
-        $('div.collectory-content [title][id!="downloadLink"]');
-    });
+            setStateFromHash();
+            updateTotal();
+            calculateFacets();
+            showFilters();
+            resources.sort(comparator);
+            displayPage();
+            wireDownloadLink();
+            wireSearchLink();
+
+            // set up tooltips
+            // - don't do download link because the title changes and the tooltip app does not update
+            // - also limit to content to exclude links in header
+            $('div.collectory-content [title][id!="downloadLink"]');
+        });
+    }
+
+    if (COLLECTORY_CONF.showExtraInfoInDataSetsView) {
+        $.getJSON(biocacheServicesUrl + "/occurrence/facets?facets=data_resource_uid&pageSize=0&flimit=-1", function(dataStats) {
+            resourcesStats = dataStats;
+            loadResourcesCondensed();
+        });
+    } else {
+        loadResourcesCondensed();
+    }
 }
 /*************************************************\
  *  List display
@@ -107,6 +131,14 @@ function appendResource(value) {
     var $rowB = $('<p class="rowB"></p>').appendTo($div);
     var $rowC = $('<div class="rowC" style="display:none;">').appendTo($div);  // starts hidden
 
+    function formatLastUpdated() {
+        if (COLLECTORY_CONF.showExtraInfoInDataSetsViewRelativeTime) {
+            return moment(value.lastUpdated).locale(COLLECTORY_CONF.locale).fromNow();
+        } else {
+            return moment(value.lastUpdated).locale(COLLECTORY_CONF.locale).format("MMMM Do, YYYY");
+        }
+    }
+
     // row A
     $rowA.append('<img title="'+ jQuery.i18n.prop('datasets.js.appendresource01') + '" src="' + baseUrl + '/static/images/skin/ExpandArrow.png"/>');  // twisty
     $rowA.append('<span class="result-name"><a title="' + jQuery.i18n.prop('datasets.js.appendresource02') + '" href="' + baseUrl + '/public/showDataResource/' + value.uid + '">' + value.name + '</a></span>'); // name
@@ -115,8 +147,17 @@ function appendResource(value) {
     // row B
     $rowB.append('<span><strong class="resultsLabelFirst">'+ jQuery.i18n.prop('datasets.js.appendresource06') +': </strong>' + jQuery.i18n.prop('dataset.result.'+ value.resourceType) + '</span>');  // resource type
     $rowB.append('<span><strong class="resultsLabel">'+ jQuery.i18n.prop('datasets.js.appendresource07') +': </strong>' + (value.licenseType == null ? '' : value.licenseType) + '</span>'); // license type
-    if (value.resourceType == 'records') {
+
+    if (COLLECTORY_CONF.showExtraInfoInDataSetsView && value.resourceType == 'records') {
+        $rowB.append('<span><strong class="lastUpdatedDrView">'+ jQuery.i18n.prop('datasets.js.lastUpdated') +': </strong>' + formatLastUpdated() + '</span>'); // last updated
+        var numRecords = drCount(value.uid);
+        if (numRecords >= 0) {
+            $rowB.append('<span><strong class="drNumRecordsDrView">' + jQuery.i18n.prop('datasets.js.numRecords') + ': </strong><a title="' + jQuery.i18n.prop('datasets.js.appendresource03') + '" href="' + biocacheUrl + '/occurrences/search?q=data_resource_uid:' + value.uid + '">' + numRecords + '</a></span>'); // recors link with numbers
+        }
+    }
+    if (!COLLECTORY_CONF.showExtraInfoInDataSetsView && value.resourceType == 'records') {
         $rowB.append('<span class="viewRecords"><a title="' + jQuery.i18n.prop('datasets.js.appendresource03') + '" href="' + biocacheUrl + '/occurrences/search?q=data_resource_uid:' + value.uid + '">'+ jQuery.i18n.prop('datasets.js.appendresource10') +'</a></span>'); // records link
+
     }
     if (value.resourceType == 'website' && value.websiteUrl) {
         $rowB.append('<span class="viewWebsite"><a title="' + jQuery.i18n.prop('datasets.js.appendresource04') + '" class="external" target="_blank" href="' + value.websiteUrl + '">'+ jQuery.i18n.prop('datasets.js.appendresource11') +'</a></span>'); // website link

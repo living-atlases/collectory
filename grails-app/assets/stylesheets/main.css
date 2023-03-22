@@ -51,5 +51,5 @@
     vertical-align: middle;
 }
 
-.resultsLabel { margin-left:10px; }
+.resultsLabel, .lastUpdatedDrView, .drNumRecordsDrView { margin-left:10px; }
 
