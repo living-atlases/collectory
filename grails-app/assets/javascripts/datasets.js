@@ -135,7 +135,7 @@ function appendResource(value) {
         if (COLLECTORY_CONF.showExtraInfoInDataSetsViewRelativeTime) {
             return moment(value.lastUpdated).locale(COLLECTORY_CONF.locale).fromNow();
         } else {
-            return moment(value.lastUpdated).locale(COLLECTORY_CONF.locale).format("MMMM Do, YYYY");
+            return moment(value.lastUpdated).locale(COLLECTORY_CONF.locale).format("LL");
         }
     }
 
