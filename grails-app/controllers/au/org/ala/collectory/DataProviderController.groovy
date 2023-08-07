@@ -1,9 +1,14 @@
 package au.org.ala.collectory
 
+import grails.converters.JSON
+import grails.converters.XML
+import grails.web.http.HttpHeaders
+
 class DataProviderController extends ProviderGroupController {
 
     def gbifRegistryService
     def authService
+    def iptService
 
     DataProviderController() {
         entityName = "DataProvider"
@@ -87,6 +92,37 @@ class DataProviderController extends ProviderGroupController {
                     entityType: 'DataProvider'
                 ]
         )
+    }
+
+    def iptScan = {
+        def create = params.create != null && params.create.equalsIgnoreCase("true")
+        def check = params.check == null || !params.check.equalsIgnoreCase("false")
+        def keyName = params.key ?: 'catalogNumber'
+        def isShareableWithGBIF = params.isShareableWithGBIF ? params.isShareableWithGBIF.toBoolean(): true
+        def provider = providerGroupService._get(params.uid)
+
+        def username = collectoryAuthService.username()
+        def admin =  collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
+        try {
+            def updates = provider == null ? null : iptService.scan(provider, create, check, keyName, username, admin, isShareableWithGBIF)
+            log.info "${updates.size()} data resources to update for ${params.uid}"
+            response.addHeader HttpHeaders.VARY, HttpHeaders.ACCEPT
+            withFormat {
+                text {
+                    render updates.findAll({ dr -> dr.uid != null }).collect({ dr -> dr.uid }).join("\n")
+                }
+                xml {
+                    render updates as XML
+                }
+                json {
+                    render updates as JSON
+                }
+            }
+        } catch (Exception e){
+            log.error("Problem scanning IPT endpoint: " + e.getMessage(), e)
+            render (status: 500, text: "Problem scanning data provider " + params.uid)
+            return
+        }
     }
 
     /**

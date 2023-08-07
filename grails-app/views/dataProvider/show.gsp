@@ -181,7 +181,7 @@
         function checkIptInstance(){
             $('.iptCheck .spinner').removeClass('hide');
             $('.iptBtn').attr('disabled','disabled');
-            var checkUrl = "${raw(createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, check:true, create: false]))}";
+            var checkUrl = "${raw(createLink(controller: "dataProvider", action: "iptScan", params:[format:"json", uid: instance?.uid, check:true, create: false]))}";
             var jqxhr = $.get(checkUrl, function(data) {
               $('.iptStatus').html("Success! IPT instance has " + data.length + " resources available." );
               $('.iptStatus').removeClass('hide')
@@ -198,7 +198,7 @@
         function updateResourcesFromIpt(){
             $('.iptUpdate .spinner').removeClass('hide');
             $('.iptBtn').attr('disabled','disabled');
-            var updateUrl = "${raw(createLink(controller: "ipt", action: "scan", params:[format:"json", uid: instance?.uid, create:true, check: false]))}";
+            var updateUrl = "${raw(createLink(controller: "dataProvider", action: "iptScan", params:[format:"json", uid: instance?.uid, create:true, check: false]))}";
             var jqxhr = $.get(updateUrl, function(data) {
               console.log(data)
               var updateText = "Success! <br/><br/> " + data.length + " resources have been added or updated from this IPT instance."
