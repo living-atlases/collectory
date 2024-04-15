@@ -123,7 +123,7 @@ class EmlImportService {
             }
         }
 
-        //add a contacts...
+        //add contacts...
         if (eml.dataset.creator){
             eml.dataset.creator.each {
                 def contact = addContact(it)
@@ -144,16 +144,51 @@ class EmlImportService {
             }
         }
 
+        // Add additional contacts
+        if (eml.dataset.contact){
+            eml.dataset.contact.each {
+                def contact = addContact(it)
+                if (contact){
+                    contacts << contact
+                }
+            }
+        }
+
+        if (eml.dataset.associatedParty){
+            eml.dataset.associatedParty.each {
+                def contact = addContact(it)
+                if (contact){
+                    contacts << contact
+                }
+            }
+        }
+
         contacts
     }
 
-    private def addContact(emlElement){
-        def contact = Contact.findByEmail(emlElement.electronicMailAddress)
-        if (!contact){
+    private def addContact(emlElement) {
+        def contact = null
+        if (emlElement.electronicMailAddress && !emlElement.electronicMailAddress.isEmpty()) {
+            String email = emlElement.electronicMailAddress.text().trim()
+            contact = Contact.findByEmail(email)
+        } else if (emlElement.individualName.givenName && emlElement.individualName.surName) {
+            contact = Contact.findByFirstNameAndLastName(emlElement.individualName.givenName, emlElement.individualName.surName)
+        } else if (emlElement.individualName.surName) {
+            // surName is mandatory
+            contact = Contact.findByLastName(emlElement.individualName.surName)
+        }
+
+        // Create the contact if it doesn't exist and it's a individualName with email or surName
+        // to prevent empty contacts (e.g. with emlElement.organizationName only)
+        boolean hasEmail = emlElement?.electronicMailAddress?.text()?.trim()?.isEmpty() == false
+        boolean hasName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
+
+        if (!contact && (hasEmail || hasName)) {
             contact = new Contact()
             contact.firstName = emlElement.individualName.givenName
             contact.lastName = emlElement.individualName.surName
-            contact.email = emlElement.electronicMailAddress
+            // some email has leading/trailing spaces causing the email constrain regexp to fail, lets trim
+            contact.email = emlElement.electronicMailAddress.text().trim()
             contact.setUserLastModified(collectoryAuthService.username())
             Contact.withTransaction {
                 if (contact.validate()) {

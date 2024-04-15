@@ -119,11 +119,14 @@ class IptService {
                                 }
                             }
 
-                            def emails = old.getContacts().collect { it.contact.email }
-
                             //sync contacts
                             update.contacts.each { contact ->
-                                if (!emails.contains(contact.email)) {
+                                def existingContact = old.getContacts().find {
+                                    (it.contact.email && !it.contact.email.isEmpty() && it.contact.email == contact.email) ||
+                                            (it.contact.firstName == contact.firstName && it.contact.lastName == contact.lastName)
+                                }
+                                if (!existingContact) {
+                                    // Add new contact
                                     old.addToContacts(contact, null, false, true, collectoryAuthService.username())
                                 }
                             }
