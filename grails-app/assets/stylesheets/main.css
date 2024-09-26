@@ -23,10 +23,6 @@
     padding-top:8px;
 }
 
-.rowA img {
-    cursor: pointer;
-}
-
 .rowA, .rowB {
     padding-bottom: 0 !important;
 }
