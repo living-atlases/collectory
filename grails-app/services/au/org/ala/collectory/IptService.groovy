@@ -119,12 +119,16 @@ class IptService {
                                 }
                             }
 
-                            def emails = old.getContacts().collect { it.contact.email }
-
                             //sync contacts
                             update.contacts.each { contact ->
-                                if (!emails.contains(contact.email)) {
-                                    old.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                                def existingContact = old.getContacts().find {
+                                    (it.contact.email && !it.contact.email.isEmpty() && it.contact.email == contact.email) ||
+                                            (it.contact.firstName == contact.firstName && it.contact.lastName == contact.lastName)
+                                }
+                                if (!existingContact) {
+                                    // Add new contact
+                                    boolean isPrimaryContact = update.primaryContacts.contains(contact)
+                                    old.addToContacts(contact, null, false, isPrimaryContact, collectoryAuthService.username())
                                 }
                             }
                         }
@@ -142,7 +146,8 @@ class IptService {
                         DataResource.withTransaction {
                             update.resource.save(flush: true, failOnError: true)
                             update.contacts.each { contact ->
-                                update.resource.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                                boolean isPrimaryContact = update.primaryContacts.contains(contact)
+                                update.resource.addToContacts(contact, null, false, isPrimaryContact, collectoryAuthService.username())
                             }
                         }
                         activityLogService.log username, admin, Action.CREATE, "Created new IPT data resource for provider " + provider.uid  + " with uid " + update.resource.uid + " for dataset " + update.resource.websiteUrl
@@ -203,11 +208,14 @@ class IptService {
         resource.isShareableWithGBIF = isShareableWithGBIF
 
         def contacts = []
+        def primaryContacts = []
         if (eml != null && eml != "") {
-            contacts = retrieveEml(resource, eml)
+            def result = retrieveEml(resource, eml)
+            contacts = result.contacts
+            primaryContacts = result.primaryContacts
         }
 
-        [resource: resource, contacts: contacts]
+        [resource: resource, contacts: contacts, primaryContacts: primaryContacts]
     }
 
     /**

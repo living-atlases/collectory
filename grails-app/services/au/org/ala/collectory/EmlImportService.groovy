@@ -115,6 +115,7 @@ class EmlImportService {
     def extractContactsFromEml(eml, dataResource){
 
         def contacts = []
+        def primaryContacts = []
 
         emlFields.each { name, accessor ->
             def val = accessor(eml)
@@ -123,10 +124,10 @@ class EmlImportService {
             }
         }
 
-        //add a contacts...
+        //add contacts...
         if (eml.dataset.creator){
             eml.dataset.creator.each {
-                def contact = addContact(it)
+                def contact = addOrUpdateContact(it)
                 if (contact){
                     contacts << contact
                 }
@@ -137,36 +138,77 @@ class EmlImportService {
                 && eml.dataset.metadataProvider.electronicMailAddress != eml.dataset.creator.electronicMailAddress){
 
             eml.dataset.metadataProvider.each {
-                def contact = addContact(it)
+                def contact = addOrUpdateContact(it)
                 if (contact){
                     contacts << contact
                 }
             }
         }
 
-        contacts
-    }
-
-    private def addContact(emlElement){
-        def contact = Contact.findByEmail(emlElement.electronicMailAddress)
-        if (!contact){
-            contact = new Contact()
-            contact.firstName = emlElement.individualName.givenName
-            contact.lastName = emlElement.individualName.surName
-            contact.email = emlElement.electronicMailAddress
-            contact.setUserLastModified(collectoryAuthService.username())
-            Contact.withTransaction {
-                if (contact.validate()) {
-                    contact.save(flush: true, failOnError: true)
-                    return contact
-                } else {
-                    contact.errors.each {
-                        log.error("Problem creating contact: " + it)
-                    }
-                    return null
+        // Add additional contacts
+        if (eml.dataset.contact){
+            eml.dataset.contact.each {
+                def contact = addOrUpdateContact(it)
+                if (contact){
+                    contacts << contact
+                    primaryContacts << contact
                 }
             }
         }
+
+        if (eml.dataset.associatedParty){
+            eml.dataset.associatedParty.each {
+                def contact = addOrUpdateContact(it)
+                if (contact){
+                    contacts << contact
+                }
+            }
+        }
+
+        [contacts: contacts, primaryContacts: primaryContacts]
+    }
+
+    private def addOrUpdateContact(emlElement) {
+        def contact = null
+        if (emlElement.electronicMailAddress && !emlElement.electronicMailAddress.isEmpty()) {
+            String email = emlElement.electronicMailAddress.text().trim()
+            contact = Contact.findByEmail(email)
+        } else if (emlElement.individualName.givenName && emlElement.individualName.surName) {
+            contact = Contact.findByFirstNameAndLastName(emlElement.individualName.givenName, emlElement.individualName.surName)
+        } else if (emlElement.individualName.surName) {
+            // surName is mandatory
+            contact = Contact.findByLastName(emlElement.individualName.surName)
+        }
+
+        // Create the contact if it doesn't exist and it's a individualName with email or surName
+        // to prevent empty contacts (e.g. with emlElement.organizationName only)
+        boolean hasEmail = emlElement?.electronicMailAddress?.text()?.trim()?.isEmpty() == false
+        boolean hasName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
+
+        if (!contact && (hasEmail || hasName)) {
+            contact = new Contact()
+        } else {
+            return null
+        }
+
+        // Update the contact details
+        contact.firstName = emlElement.individualName.givenName
+        contact.lastName = emlElement.individualName.surName
+        // some email has leading/trailing spaces causing the email constrain regexp to fail, lets trim
+        contact.email = emlElement.electronicMailAddress.text().trim()
+        contact.setUserLastModified(collectoryAuthService.username())
+        Contact.withTransaction {
+            if (contact.validate()) {
+                contact.save(flush: true, failOnError: true)
+                return contact
+            } else {
+                contact.errors.each {
+                    log.error("Problem creating contact: " + it)
+                }
+                return null
+            }
+        }
+
         contact
     }
 }
