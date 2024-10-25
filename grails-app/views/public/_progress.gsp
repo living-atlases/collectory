@@ -34,7 +34,11 @@ function setPercentAgeNumbers(totalBiocacheRecords, totalRecords) {
         setProgress(percent);
     } else {
         // the progress bar doesn't make sense if there is no estimated speciemens count
-        $('#progress').hide();
+        $('#progressBarItem').hide();
+
+        // change the display text for the lack of metadata
+        $('#speedoCaption').hide();
+        $('#speedoCaptionMissingMetadata').show();
     }
 }
 

@@ -158,10 +158,13 @@
                             </div>
                             <div class="col-md-4">
                                 <div id="progress" class="well">
-                                    <div class="progress">
+                                    <div class="progress" id="progressBarItem">
                                         <div id="progressBar" class="progress-bar progress-bar-success" style="width: 0%;"></div>
                                     </div>
-                                    <p class="caption"><span id="speedoCaption"><g:message code="public.show.setprogress.02" args="${[grailsApplication.config.skin.orgNameShort]}" />.</span></p>
+                                    <p class="caption">
+                                        <span id="speedoCaption"><g:message code="public.show.setprogress.02" args="${[grailsApplication.config.skin.orgNameShort]}" />.</span>
+                                        <span id="speedoCaptionMissingMetadata" style="display: none;"><g:message code="public.show.setprogress.01" args="${[grailsApplication.config.skin.orgNameShort]}" />.</span>
+                                    </p>
                                 </div>
                             </div>
 
