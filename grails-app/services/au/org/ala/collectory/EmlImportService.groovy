@@ -112,10 +112,10 @@ class EmlImportService {
      * @param connParams
      * @return
      */
-    def extractContactsFromEml(eml, dataResource){
-
+    def extractContactsFromEml(eml, dataResource) {
         def contacts = []
         def primaryContacts = []
+        def processedContacts = []
 
         emlFields.each { name, accessor ->
             def val = accessor(eml)
@@ -124,45 +124,45 @@ class EmlImportService {
             }
         }
 
-        //add contacts...
-        if (eml.dataset.creator){
-            eml.dataset.creator.each {
-                def contact = addOrUpdateContact(it)
-                if (contact){
+        def addUniqueContact = { provider ->
+            def providerEmail = provider.electronicMailAddress?.text()?.trim()
+            def providerName = "${provider.individualName?.givenName?.text()?.trim()}_${provider.individualName?.surName?.text()?.trim()}"
+            def providerOrg = provider.organizationName?.text()?.trim()
+            def providerPosition = provider.positionName?.text()?.trim()
+
+            def uniqueKey = providerEmail ?: providerName ?: providerOrg ?: providerPosition
+            if (uniqueKey && !processedContacts.contains(uniqueKey)) {
+                def contact = addOrUpdateContact(provider)
+                if (contact) {
                     contacts << contact
+                    processedContacts << uniqueKey
+                    return contact
                 }
             }
         }
 
-        if (eml.dataset.metadataProvider
-                && eml.dataset.metadataProvider.electronicMailAddress != eml.dataset.creator.electronicMailAddress){
+        // EML Schema
+        // https://eml.ecoinformatics.org/images/eml-party.png
 
-            eml.dataset.metadataProvider.each {
-                def contact = addOrUpdateContact(it)
-                if (contact){
-                    contacts << contact
-                }
-            }
+        if (eml.dataset.creator) {
+            eml.dataset.creator.each { addUniqueContact(it) }
         }
 
-        // Add additional contacts
-        if (eml.dataset.contact){
+        if (eml.dataset.contact) {
             eml.dataset.contact.each {
-                def contact = addOrUpdateContact(it)
-                if (contact){
-                    contacts << contact
+                def contact = addUniqueContact(it)
+                if (contact) {
                     primaryContacts << contact
                 }
             }
         }
 
-        if (eml.dataset.associatedParty){
-            eml.dataset.associatedParty.each {
-                def contact = addOrUpdateContact(it)
-                if (contact){
-                    contacts << contact
-                }
-            }
+        if (eml.dataset.metadataProvider) {
+            eml.dataset.metadataProvider.each { addUniqueContact(it) }
+        }
+
+        if (eml.dataset.associatedParty) {
+            eml.dataset.associatedParty.each { addUniqueContact(it) }
         }
 
         [contacts: contacts, primaryContacts: primaryContacts]
@@ -173,42 +173,44 @@ class EmlImportService {
         if (emlElement.electronicMailAddress && !emlElement.electronicMailAddress.isEmpty()) {
             String email = emlElement.electronicMailAddress.text().trim()
             contact = Contact.findByEmail(email)
-        } else if (emlElement.individualName.givenName && emlElement.individualName.surName) {
-            contact = Contact.findByFirstNameAndLastName(emlElement.individualName.givenName, emlElement.individualName.surName)
-        } else if (emlElement.individualName.surName) {
-            // surName is mandatory
-            contact = Contact.findByLastName(emlElement.individualName.surName)
+        } else if (emlElement.individualName?.givenName && emlElement.individualName?.surName) {
+            contact = Contact.findByFirstNameAndLastName(
+                    emlElement.individualName.givenName.text()?.trim(),
+                    emlElement.individualName.surName.text()?.trim()
+            )
+        } else if (emlElement.individualName?.surName) {
+            contact = Contact.findByLastName(emlElement.individualName.surName.text()?.trim())
+        } else if (emlElement.organizationName) {
+            contact = Contact.findByFirstName(emlElement.organizationName.text()?.trim())
+        } else if (emlElement.positionName) {
+            contact = Contact.findByFirstName(emlElement.positionName.text()?.trim())
         }
 
-        // Create the contact if it doesn't exist and it's a individualName with email or surName
-        // to prevent empty contacts (e.g. with emlElement.organizationName only)
         boolean hasEmail = emlElement?.electronicMailAddress?.text()?.trim()?.isEmpty() == false
         boolean hasName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
+        boolean hasOrg = emlElement?.organizationName?.text()?.trim()?.isEmpty() == false
+        boolean hasPosition = emlElement?.positionName?.text()?.trim()?.isEmpty() == false
 
-        if (!contact && (hasEmail || hasName)) {
+        if (!contact && (hasEmail || hasName || hasOrg || hasPosition)) {
             contact = new Contact()
-        } else {
-            return null
-        }
-
-        // Update the contact details
-        contact.firstName = emlElement.individualName.givenName
-        contact.lastName = emlElement.individualName.surName
-        // some email has leading/trailing spaces causing the email constrain regexp to fail, lets trim
-        contact.email = emlElement.electronicMailAddress.text().trim()
-        contact.setUserLastModified(collectoryAuthService.username())
-        Contact.withTransaction {
-            if (contact.validate()) {
-                contact.save(flush: true, failOnError: true)
-                return contact
-            } else {
-                contact.errors.each {
-                    log.error("Problem creating contact: " + it)
+            // For now we are just going to set the first name to the organization name
+            contact.firstName = emlElement.individualName?.givenName?.text()?.trim()
+            if (hasOrg)
+                contact.firstName = emlElement.organizationName?.text()?.trim()
+            if (hasPosition)
+                contact.firstName = emlElement.positionName?.text()?.trim()
+            contact.lastName = emlElement.individualName?.surName?.text()?.trim()
+            contact.email = emlElement.electronicMailAddress?.text()?.trim()
+            contact.setUserLastModified(collectoryAuthService.username())
+            Contact.withTransaction {
+                if (contact.validate()) {
+                    contact.save(flush: true, failOnError: true)
+                } else {
+                    log.error("Validation errors creating contact: ${contact.errors}")
+                    return null
                 }
-                return null
             }
         }
-
-        contact
+        return contact
     }
 }
