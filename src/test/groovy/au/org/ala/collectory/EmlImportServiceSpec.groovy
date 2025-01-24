@@ -425,7 +425,7 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         result.contacts*.email.contains('john.doe@example.org')
     }
 
-    void "test extractContactsFromEml with only surName"() {
+    void "test extractContactsFromEml without surName"() {
         given: "A base EML input loaded from a file and with a custom contact"
         def baseEml = getClass().getResourceAsStream("/base_eml.xml").text
         def contactsXml = '''
@@ -445,5 +445,29 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         then: "The contact is empty"
         result.contacts.size() == 0
 
+    }
+
+    void "test extractContactsFromEml with surName and phone"() {
+        given: "A base EML input loaded from a file and with a custom contact"
+        def baseEml = getClass().getResourceAsStream("/base_eml.xml").text
+        def contactsXml = '''
+        <creator>
+            <individualName>
+                <surName>Doe</surName>
+            </individualName>
+            <phone>+1 234567890</phone>
+        </creator>
+    '''
+
+        def eml = parseEml(baseEml, contactsXml)
+        def dataResource = new DataResource()
+
+        when: "Contacts are extracted"
+        def result = service.extractContactsFromEml(eml, dataResource)
+
+        then: "The contact is empty"
+        result.contacts.size() == 1
+        result.contacts*.lastName.contains('Doe')
+        result.contacts*.phone.contains('+1 234567890')
     }
 }

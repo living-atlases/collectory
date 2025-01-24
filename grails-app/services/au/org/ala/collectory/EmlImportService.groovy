@@ -201,6 +201,7 @@ class EmlImportService {
                 contact.firstName = emlElement.positionName?.text()?.trim()
             contact.lastName = emlElement.individualName?.surName?.text()?.trim()
             contact.email = emlElement.electronicMailAddress?.text()?.trim()
+            contact.phone = emlElement.phone?.text()?.trim()
             contact.setUserLastModified(collectoryAuthService.username())
             Contact.withTransaction {
                 if (contact.validate()) {
