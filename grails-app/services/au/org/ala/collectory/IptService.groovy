@@ -159,8 +159,17 @@ class IptService {
         }
 
         obsoleteContactFor.each { contactFor ->
-            resource.deleteFromContacts(contactFor.contact)
-            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contactFor.contact.email} from resource ${resource.uid}")
+            def contact = contactFor.contact
+            resource.deleteFromContacts(contact)
+
+            // Log the deletion
+            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contact.email} from resource ${resource.uid}")
+
+            // Check if the contact is orphaned and delete it
+            if (!ContactFor.findByContact(contact)) {
+                contact.delete(flush: true)
+                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.email}")
+            }
         }
 
         newContacts.each { contact ->

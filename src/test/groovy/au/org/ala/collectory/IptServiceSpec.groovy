@@ -539,5 +539,55 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         resource.lastChecked.time >= System.currentTimeMillis() - 1000
     }
 
+    void "test syncContacts removes orphaned contacts"() {
+        given: "A resource with existing contacts, one of which is shared with another resource"
+        def resource1 = new DataResource(
+                uid: "dr1",
+                name: "Resource 1",
+                userLastModified: "testUser"
+        ).save(flush: true, failOnError: true)
+
+        def resource2 = new DataResource(
+                uid: "dr2",
+                name: "Resource 2",
+                userLastModified: "testUser"
+        ).save(flush: true, failOnError: true)
+
+        def sharedContact = new Contact(
+                firstName: "Shared",
+                lastName: "Contact",
+                email: "shared.contact@example.org",
+                userLastModified: "testUser"
+        ).save(flush: true, failOnError: true)
+
+        def orphanContact = new Contact(
+                firstName: "Orphan",
+                lastName: "Contact",
+                email: "orphan.contact@example.org",
+                userLastModified: "testUser"
+        ).save(flush: true, failOnError: true)
+
+        resource1.addToContacts(sharedContact, null, false, false, "testUser")
+        resource1.addToContacts(orphanContact, null, false, false, "testUser")
+        resource1.save(flush: true, failOnError: true)
+
+        resource2.addToContacts(sharedContact, null, false, false, "testUser")
+        resource2.save(flush: true, failOnError: true)
+
+        def newContacts = [sharedContact] // Only keep the shared contact
+
+        when: "syncContacts is called"
+        service.syncContacts(resource1, newContacts, [], "testUser", true)
+
+        then: "The orphaned contact is removed from the database"
+        ContactFor.findByContact(orphanContact) == null
+        Contact.findByEmail("orphan.contact@example.org") == null
+
+        and: "The shared contact is still present and associated with resource2"
+        ContactFor.findByContact(sharedContact) != null
+        resource2.contacts.size() == 1
+        resource2.contacts[0].contact.email == "shared.contact@example.org"
+    }
+
 }
 
