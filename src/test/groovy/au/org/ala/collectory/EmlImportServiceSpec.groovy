@@ -296,7 +296,7 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
 
         then:
         result.contacts.size() == 1
-        result.contacts[0].firstName == 'Example Organization'
+        result.contacts[0].organizationName == 'Example Organization'
     }
 
     void "test extractContactsFromEml with positionName only"() {
@@ -316,7 +316,7 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
 
         then:
         result.contacts.size() == 1
-        result.contacts[0].firstName == 'Data Manager'
+        result.contacts[0].positionName == 'Data Manager'
     }
 
     void "test extractContactsFromEml with individualName only"() {
@@ -482,16 +482,16 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
                 userLastModified: "originalUser"
         ).save(flush: true, failOnError: true)
 
-        def emlElement = new XmlSlurper().parseText('''
-        <creator>
-            <individualName>
-                <givenName>John</givenName>
-                <surName>Doe</surName>
-            </individualName>
-            <electronicMailAddress>john.doe@example.org</electronicMailAddress>
-            <phone>987654321</phone>
-        </creator>
-    ''')
+        def emlElement = new XmlSlurper().parseText('''        
+<creator>
+    <individualName>
+        <givenName>John</givenName>
+        <surName>Doe</surName>
+    </individualName>
+    <electronicMailAddress>john.doe@example.org</electronicMailAddress>
+    <phone>987654321</phone>
+</creator>
+''')
 
         when: "addOrUpdateContact is called"
         def result = service.addOrUpdateContact(emlElement)
@@ -508,7 +508,7 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         Contact.count() == 1
 
         when: "A new contact is created with a phone number"
-        def newEmlElement = new XmlSlurper().parseText('''
+        def newEmlElement = new XmlSlurper().parseText('''      
         <creator>
             <individualName>
                 <givenName>Jane</givenName>
@@ -531,6 +531,42 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
 
         and: "There are now two contacts in the system"
         Contact.count() == 2
+    }
+
+    void "test addOrUpdateContact updates name with accent changes"() {
+        given: "An existing contact with a name without accents"
+        def existingContact = new Contact(
+                firstName: "Jose",
+                lastName: "Garcia",
+                email: "jose.garcia@example.org",
+                phone: "123456789",
+                userLastModified: "originalUser"
+        ).save(flush: true, failOnError: true)
+
+        def emlElement = new XmlSlurper().parseText('''        
+        <creator>
+            <individualName>
+                <givenName>José</givenName>
+                <surName>García</surName>
+            </individualName>
+            <electronicMailAddress>jose.garcia@example.org</electronicMailAddress>
+            <phone>123456789</phone>
+        </creator>
+    ''')
+
+        when: "addOrUpdateContact is called with an updated name containing accents"
+        def result = service.addOrUpdateContact(emlElement)
+
+        then: "The existing contact's name is updated to include accents"
+        result != null
+        result.email == "jose.garcia@example.org"
+        result.firstName == "José"
+        result.lastName == "García"
+        result.phone == "123456789"
+        result.userLastModified == "testUser"
+
+        and: "No duplicate contact is created"
+        Contact.count() == 1
     }
 
 }

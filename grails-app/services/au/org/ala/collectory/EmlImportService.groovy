@@ -181,24 +181,23 @@ class EmlImportService {
         } else if (emlElement.individualName?.surName) {
             contact = Contact.findByLastName(emlElement.individualName.surName.text()?.trim())
         } else if (emlElement.organizationName) {
-            contact = Contact.findByFirstName(emlElement.organizationName.text()?.trim())
+            contact = Contact.findByOrganizationName(emlElement.organizationName.text()?.trim())
         } else if (emlElement.positionName) {
-            contact = Contact.findByFirstName(emlElement.positionName.text()?.trim())
+            contact = Contact.findByPositionName(emlElement.positionName.text()?.trim())
         }
 
         boolean hasEmail = emlElement?.electronicMailAddress?.text()?.trim()?.isEmpty() == false
-        boolean hasName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
+        boolean hasSurName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
         boolean hasOrg = emlElement?.organizationName?.text()?.trim()?.isEmpty() == false
         boolean hasPosition = emlElement?.positionName?.text()?.trim()?.isEmpty() == false
 
-        if (!contact && (hasEmail || hasName || hasOrg || hasPosition)) {
+        if (!contact && (hasEmail || hasSurName || hasOrg || hasPosition)) {
             contact = new Contact()
             contact.firstName = emlElement.individualName?.givenName?.text()?.trim()
-            if (hasOrg)
-                contact.firstName = emlElement.organizationName?.text()?.trim()
-            if (hasPosition)
-                contact.firstName = emlElement.positionName?.text()?.trim()
             contact.lastName = emlElement.individualName?.surName?.text()?.trim()
+            contact.organizationName = emlElement.organizationName?.text()?.trim()
+            contact.positionName = emlElement.positionName?.text()?.trim()
+            contact.userId = emlElement.userId?.text()?.trim()
             contact.email = emlElement.electronicMailAddress?.text()?.trim()
             contact.phone = emlElement.phone?.text()?.trim()
             contact.setUserLastModified(collectoryAuthService.username())
@@ -243,42 +242,6 @@ class EmlImportService {
             }
         }
         return contact
-    }
-
-    void "test addOrUpdateContact updates name with accent changes"() {
-        given: "An existing contact with a name without accents"
-        def existingContact = new Contact(
-                firstName: "Jose",
-                lastName: "Garcia",
-                email: "jose.garcia@example.org",
-                phone: "123456789",
-                userLastModified: "originalUser"
-        ).save(flush: true, failOnError: true)
-
-        def emlElement = new XmlSlurper().parseText('''
-        <creator>
-            <individualName>
-                <givenName>José</givenName>
-                <surName>García</surName>
-            </individualName>
-            <electronicMailAddress>jose.garcia@example.org</electronicMailAddress>
-            <phone>123456789</phone>
-        </creator>
-    ''')
-
-        when: "addOrUpdateContact is called with an updated name containing accents"
-        def result = service.addOrUpdateContact(emlElement)
-
-        then: "The existing contact's name is updated to include accents"
-        result != null
-        result.email == "jose.garcia@example.org"
-        result.firstName == "José"
-        result.lastName == "García"
-        result.phone == "123456789"
-        result.userLastModified == "testUser"
-
-        and: "No duplicate contact is created"
-        Contact.count() == 1
     }
 
 }

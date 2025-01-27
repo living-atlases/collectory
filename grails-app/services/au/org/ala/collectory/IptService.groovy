@@ -154,7 +154,9 @@ class IptService {
         def obsoleteContactFor = existingContacts.findAll { contactFor ->
             !newContacts.any { newContact ->
                 (contactFor.contact.email && contactFor.contact.email == newContact.email) ||
-                        (contactFor.contact.firstName == newContact.firstName && contactFor.contact.lastName == newContact.lastName)
+                        (contactFor.contact.firstName == newContact.firstName && contactFor.contact.lastName == newContact.lastName) ||
+                        (contactFor.contact.organizationName && contactFor.contact.organizationName == newContact.organizationName) ||
+                        (contactFor.contact.positionName && contactFor.contact.positionName == newContact.positionName)
             }
         }
 
@@ -175,7 +177,9 @@ class IptService {
         newContacts.each { contact ->
             def existingContactFor = existingContacts.find { contactFor ->
                 (contactFor.contact.email && contactFor.contact.email == contact.email) ||
-                        (contactFor.contact.firstName == contact.firstName && contactFor.contact.lastName == contact.lastName)
+                        (contactFor.contact.firstName == contact.firstName && contactFor.contact.lastName == contact.lastName) ||
+                        (contactFor.contact.organizationName && contactFor.contact.organizationName == contact.organizationName) ||
+                        (contactFor.contact.positionName && contactFor.contact.positionName == contact.positionName)
             }
 
             if (!existingContactFor) {
