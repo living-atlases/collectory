@@ -193,7 +193,6 @@ class EmlImportService {
 
         if (!contact && (hasEmail || hasName || hasOrg || hasPosition)) {
             contact = new Contact()
-            // For now we are just going to set the first name to the organization name
             contact.firstName = emlElement.individualName?.givenName?.text()?.trim()
             if (hasOrg)
                 contact.firstName = emlElement.organizationName?.text()?.trim()
@@ -203,6 +202,7 @@ class EmlImportService {
             contact.email = emlElement.electronicMailAddress?.text()?.trim()
             contact.phone = emlElement.phone?.text()?.trim()
             contact.setUserLastModified(collectoryAuthService.username())
+
             Contact.withTransaction {
                 if (contact.validate()) {
                     contact.save(flush: true, failOnError: true)
@@ -211,7 +211,74 @@ class EmlImportService {
                     return null
                 }
             }
+        } else if (contact) {
+            // Update existing contact fields if they differ
+            boolean updated = false
+            if (emlElement.phone?.text()?.trim() && emlElement.phone.text().trim() != contact.phone) {
+                contact.phone = emlElement.phone.text().trim()
+                updated = true
+            }
+            if (emlElement.electronicMailAddress?.text()?.trim() && emlElement.electronicMailAddress.text().trim() != contact.email) {
+                contact.email = emlElement.electronicMailAddress.text().trim()
+                updated = true
+            }
+            if (emlElement.individualName?.givenName?.text()?.trim() && emlElement.individualName.givenName.text().trim() != contact.firstName) {
+                contact.firstName = emlElement.individualName.givenName.text().trim()
+                updated = true
+            }
+            if (emlElement.individualName?.surName?.text()?.trim() && emlElement.individualName.surName.text().trim() != contact.lastName) {
+                contact.lastName = emlElement.individualName.surName.text().trim()
+                updated = true
+            }
+            if (updated) {
+                contact.setUserLastModified(collectoryAuthService.username())
+                Contact.withTransaction {
+                    if (contact.validate()) {
+                        contact.save(flush: true, failOnError: true)
+                    } else {
+                        log.error("Validation errors updating contact: ${contact.errors}")
+                        return null
+                    }
+                }
+            }
         }
         return contact
     }
+
+    void "test addOrUpdateContact updates name with accent changes"() {
+        given: "An existing contact with a name without accents"
+        def existingContact = new Contact(
+                firstName: "Jose",
+                lastName: "Garcia",
+                email: "jose.garcia@example.org",
+                phone: "123456789",
+                userLastModified: "originalUser"
+        ).save(flush: true, failOnError: true)
+
+        def emlElement = new XmlSlurper().parseText('''
+        <creator>
+            <individualName>
+                <givenName>José</givenName>
+                <surName>García</surName>
+            </individualName>
+            <electronicMailAddress>jose.garcia@example.org</electronicMailAddress>
+            <phone>123456789</phone>
+        </creator>
+    ''')
+
+        when: "addOrUpdateContact is called with an updated name containing accents"
+        def result = service.addOrUpdateContact(emlElement)
+
+        then: "The existing contact's name is updated to include accents"
+        result != null
+        result.email == "jose.garcia@example.org"
+        result.firstName == "José"
+        result.lastName == "García"
+        result.phone == "123456789"
+        result.userLastModified == "testUser"
+
+        and: "No duplicate contact is created"
+        Contact.count() == 1
+    }
+
 }

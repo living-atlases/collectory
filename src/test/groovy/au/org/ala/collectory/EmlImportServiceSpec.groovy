@@ -5,7 +5,7 @@ import grails.testing.gorm.DomainUnitTest
 import groovy.util.slurpersupport.NodeChild
 import spock.lang.Specification
 
-class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlImportService>, DomainUnitTest<Contact>{
+class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlImportService>, DomainUnitTest<Contact> {
 
     def setup() {
         service.dataLoaderService = Mock(DataLoaderService)
@@ -342,6 +342,7 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         result.contacts[0].lastName == 'Doe'
         result.contacts[0].firstName == 'Jane'
     }
+
     void "test extractContactsFromEml skips invalid contact"() {
         given:
         def baseEml = getClass().getResourceAsStream("/base_eml.xml").text
@@ -470,4 +471,66 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         result.contacts*.lastName.contains('Doe')
         result.contacts*.phone.contains('+1 234567890')
     }
+
+    void "test addOrUpdateContact updates phone if contact exists or creates new contact with phone"() {
+        given: "An existing contact and an EML element with updated phone"
+        def existingContact = new Contact(
+                firstName: "John",
+                lastName: "Doe",
+                email: "john.doe@example.org",
+                phone: "123456789",
+                userLastModified: "originalUser"
+        ).save(flush: true, failOnError: true)
+
+        def emlElement = new XmlSlurper().parseText('''
+        <creator>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Doe</surName>
+            </individualName>
+            <electronicMailAddress>john.doe@example.org</electronicMailAddress>
+            <phone>987654321</phone>
+        </creator>
+    ''')
+
+        when: "addOrUpdateContact is called"
+        def result = service.addOrUpdateContact(emlElement)
+
+        then: "The existing contact is updated with the new phone"
+        result != null
+        result.email == "john.doe@example.org"
+        result.firstName == "John"
+        result.lastName == "Doe"
+        result.phone == "987654321"
+        result.userLastModified == "testUser"
+
+        and: "No duplicate contact is created"
+        Contact.count() == 1
+
+        when: "A new contact is created with a phone number"
+        def newEmlElement = new XmlSlurper().parseText('''
+        <creator>
+            <individualName>
+                <givenName>Jane</givenName>
+                <surName>Smith</surName>
+            </individualName>
+            <electronicMailAddress>jane.smith@example.org</electronicMailAddress>
+            <phone>555123456</phone>
+        </creator>
+    ''')
+
+        def newContact = service.addOrUpdateContact(newEmlElement)
+
+        then: "The new contact is created successfully"
+        newContact != null
+        newContact.email == "jane.smith@example.org"
+        newContact.firstName == "Jane"
+        newContact.lastName == "Smith"
+        newContact.phone == "555123456"
+        newContact.userLastModified == "testUser"
+
+        and: "There are now two contacts in the system"
+        Contact.count() == 2
+    }
+
 }
