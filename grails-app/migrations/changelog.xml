@@ -460,4 +460,37 @@ liquibase.command.referencePassword: XXXXX
         </addColumn>
     </changeSet>
 
+    <changeSet author="vjrj" id="20250127-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="contact" columnName="organization_name" />
+            </not>
+        </preConditions>
+        <addColumn tableName="contact">
+            <column name="organization_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="vjrj" id="20250127-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="contact" columnName="position_name" />
+            </not>
+        </preConditions>
+        <addColumn tableName="contact">
+            <column name="position_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="vjrj" id="20250127-03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="contact" columnName="user_id" />
+            </not>
+        </preConditions>
+        <addColumn tableName="contact">
+            <column name="user_id" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

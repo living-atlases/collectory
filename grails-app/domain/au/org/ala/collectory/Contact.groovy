@@ -14,6 +14,9 @@ class Contact implements Serializable {
     String mobile
     String email
     String fax
+    String organizationName
+    String positionName
+    String userId
     String notes
     boolean publish = true    // controls whether the contact is listed on web site
 
@@ -31,6 +34,9 @@ class Contact implements Serializable {
         mobile(nullable: true, maxSize:45)
         email(nullable: true, maxSize:128, email: true)
         fax(nullable: true, maxSize:45)
+        organizationName(nullable: true, maxSize: 255)
+        positionName(nullable: true, maxSize: 255)
+        userId(nullable: true, maxSize: 255)
         notes(nullable: true, maxSize: 1024)
         publish()
         userLastModified(maxSize:256)
