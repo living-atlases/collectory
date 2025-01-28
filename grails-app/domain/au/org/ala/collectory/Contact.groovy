@@ -98,8 +98,14 @@ class Contact implements Serializable {
     String buildName() {
         if (lastName)
             return [(title ?: ''), (firstName ?: ''), lastName].join(" ").trim()
+        else if (organizationName)
+            return organizationName
+        else if (positionName)
+            return positionName
         else if (email)
             return email
+        else if (userId)
+            return userId
         else if (phone)
             return phone
         else if (mobile)
