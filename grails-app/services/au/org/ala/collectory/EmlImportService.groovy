@@ -190,6 +190,9 @@ class EmlImportService {
         boolean hasSurName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
         boolean hasOrg = emlElement?.organizationName?.text()?.trim()?.isEmpty() == false
         boolean hasPosition = emlElement?.positionName?.text()?.trim()?.isEmpty() == false
+        String userId = emlElement.userId?.text()?.trim()
+        String userIdDirectory = emlElement.userId?.@directory?.text()?.trim()
+        String userIdUrl = userIdDirectory && userId ? "${userIdDirectory}${userId}" : null
 
         if (!contact && (hasEmail || hasSurName || hasOrg || hasPosition)) {
             contact = new Contact()
@@ -197,7 +200,7 @@ class EmlImportService {
             contact.lastName = emlElement.individualName?.surName?.text()?.trim()
             contact.organizationName = emlElement.organizationName?.text()?.trim()
             contact.positionName = emlElement.positionName?.text()?.trim()
-            contact.userId = emlElement.userId?.text()?.trim()
+            contact.userId = userIdUrl
             contact.email = emlElement.electronicMailAddress?.text()?.trim()
             contact.phone = emlElement.phone?.text()?.trim()
             contact.setUserLastModified(collectoryAuthService.username())
@@ -227,6 +230,18 @@ class EmlImportService {
             }
             if (emlElement.individualName?.surName?.text()?.trim() && emlElement.individualName.surName.text().trim() != contact.lastName) {
                 contact.lastName = emlElement.individualName.surName.text().trim()
+                updated = true
+            }
+            if (emlElement.organizationName?.text()?.trim() && emlElement.organizationName.text().trim() != contact.organizationName) {
+                contact.organizationName = emlElement.organizationName.text().trim()
+                updated = true
+            }
+            if (emlElement.positionName?.text()?.trim() && emlElement.positionName.text().trim() != contact.positionName) {
+                contact.positionName = emlElement.positionName.text().trim()
+                updated = true
+            }
+            if (userIdUrl != contact.userId) {
+                contact.userId = userIdUrl
                 updated = true
             }
             if (updated) {

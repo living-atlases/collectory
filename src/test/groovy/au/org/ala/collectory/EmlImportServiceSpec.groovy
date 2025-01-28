@@ -569,4 +569,47 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         Contact.count() == 1
     }
 
+    void "test process userIds from EML"() {
+        given: "An EML input with creators and userIds"
+        def emlXml = '''
+        <eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:dc="http://purl.org/dc/terms/">
+            <dataset>
+                <creator>
+                    <individualName>
+                        <givenName>John</givenName>
+                        <surName>Doe</surName>
+                    </individualName>
+                    <organizationName>Sample Organization</organizationName>
+                    <userId directory="https://orcid.org/">0000-0001-2345-6789</userId>
+                </creator>
+                <creator>
+                    <individualName>
+                        <givenName>Jane</givenName>
+                        <surName>Smith</surName>
+                    </individualName>
+                    <organizationName>Another Organization</organizationName>
+                    <userId directory="https://orcid.org/">0000-0002-9876-5432</userId>
+                </creator>
+            </dataset>
+        </eml:eml>
+    '''
+
+        def eml = new XmlSlurper().parseText(emlXml)
+        def dataResource = new DataResource()
+
+        when: "Contacts are extracted from EML"
+        def result = service.extractContactsFromEml(eml, dataResource)
+
+        then: "Contacts are created with correct userIdUrl and organizationName"
+        result.contacts.size() == 2
+
+        and: "First contact contains correct userIdUrl and organizationName"
+        result.contacts[0].userId == "https://orcid.org/0000-0001-2345-6789"
+        result.contacts[0].organizationName == "Sample Organization"
+
+        and: "Second contact contains correct userIdUrl and organizationName"
+        result.contacts[1].userId == "https://orcid.org/0000-0002-9876-5432"
+        result.contacts[1].organizationName == "Another Organization"
+    }
+
 }
