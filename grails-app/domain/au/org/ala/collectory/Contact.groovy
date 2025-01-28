@@ -126,6 +126,6 @@ class Contact implements Serializable {
      * Note stupid name because Grails seems to object to isEmpty thinking there should be an empty property.
      */
     boolean hasContent() {
-        lastName || phone || mobile || email || fax
+        lastName || phone || mobile || email || fax || organizationName || positionName
     }
 }
