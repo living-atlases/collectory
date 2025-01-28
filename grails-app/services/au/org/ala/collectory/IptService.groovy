@@ -174,6 +174,7 @@ class IptService {
             }
         }
 
+        def addedContacts = []
         newContacts.each { contact ->
             def existingContactFor = existingContacts.find { contactFor ->
                 (contactFor.contact.email && contactFor.contact.email == contact.email) ||
@@ -184,10 +185,28 @@ class IptService {
 
             if (!existingContactFor) {
                 boolean isPrimaryContact = primaryContacts.contains(contact)
-                resource.addToContacts(contact, null, false, isPrimaryContact, username)
+
+                if (!addedContacts.contains(contact.email ?: contact.organizationName)) {
+                    resource.addToContacts(contact, null, false, isPrimaryContact, username)
+                    addedContacts << (contact.email ?: contact.organizationName)
+                }
             } else {
                 existingContactFor.primaryContact = primaryContacts.contains(contact)
                 existingContactFor.save(flush: true)
+            }
+        }
+
+        // Group by contact
+        def groupedByContact = existingContacts.groupBy { it.contact }
+
+        // Identify duplicates
+        groupedByContact.each { contact, contactForList ->
+            if (contactForList.size() > 1) {
+                // Remove duplicates, keeping only the first one
+                contactForList.drop(1).each { duplicate ->
+                    duplicate.delete(flush: true)
+                    activityLogService.log(username, admin, Action.DELETE, "Deleted duplicate contactFor ${contact.buildName()} in resource ${resource.uid}")
+                }
             }
         }
 

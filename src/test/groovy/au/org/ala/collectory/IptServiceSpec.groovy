@@ -589,5 +589,35 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         resource2.contacts[0].contact.email == "shared.contact@example.org"
     }
 
+    void "test syncContacts removes duplicates and avoids orphan contacts"() {
+        given: "A resource with existing contacts and potential duplicates"
+        def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+        def contact1 = new Contact(email: "contact1@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser").save(flush: true, failOnError: true)
+        def contact2 = new Contact(email: "contact2@example.com", firstName: "Jane", lastName: "Smith", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        // Adding duplicates
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        new ContactFor(contact: contact2, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        new ContactFor(contact: contact2, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        expect: "Duplicates exist before syncContacts is called"
+        ContactFor.countByEntityUid(resource.uid) == 4
+
+        when: "syncContacts is called with new contacts"
+        service.syncContacts(resource, [contact1, contact2], [contact1], "testUser", false)
+
+        then: "Duplicates are removed and only one ContactFor per contact remains"
+        ContactFor.countByEntityUid(resource.uid) == 2
+
+        and: "Primary contact status is correctly updated"
+        ContactFor.findByContact(contact1).primaryContact == true
+        ContactFor.findByContact(contact2).primaryContact == false
+
+        and: "No orphaned contacts remain"
+        def orphanContacts = Contact.findAll().findAll { contact -> !ContactFor.findByContact(contact) }
+        orphanContacts.isEmpty()
+    }
+
 }
 
