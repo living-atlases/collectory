@@ -151,44 +151,66 @@ class IptService {
     private void syncContacts(DataResource resource, List<Contact> newContacts, List<Contact> primaryContacts, String username, boolean admin) {
         def existingContacts = resource.getContacts()
 
+        // Generate a key for each contact based on the fields that are available
+        def getContactKey = { contact ->
+            contact.email ?: contact.userId ?:
+                    (contact.firstName && contact.lastName ? "${contact.firstName}_${contact.lastName}" : null) ?:
+                            (contact.organizationName ? "${contact.organizationName}_${contact.positionName ?: ''}" : null)
+        }
+
+        // Group existing contacts by key
+        def groupedExistingContacts = existingContacts.groupBy { getContactKey(it.contact) }
+
+        // Remove duplicates
+        groupedExistingContacts.each { key, contacts ->
+            if (key && contacts.size() > 1) {
+                contacts.sort { -it.contact.lastUpdated?.time ?: 0 }
+                def latestContact = contacts.first().contact
+
+                contacts.drop(1).each { duplicateContactFor ->
+                    def duplicateContact = duplicateContactFor.contact
+                    duplicateContactFor.delete(flush: true)
+
+                    if (ContactFor.countByContact(duplicateContact) == 0) {
+                        duplicateContact.delete(flush: true)
+                        activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${duplicateContact.buildName() ?: duplicateContact.email}")
+                    }
+                }
+            }
+        }
+
+        existingContacts = resource.getContacts()
+
         def obsoleteContactFor = existingContacts.findAll { contactFor ->
             !newContacts.any { newContact ->
-                (contactFor.contact.email && contactFor.contact.email == newContact.email) ||
-                        (contactFor.contact.firstName == newContact.firstName && contactFor.contact.lastName == newContact.lastName) ||
-                        (contactFor.contact.organizationName && contactFor.contact.organizationName == newContact.organizationName) ||
-                        (contactFor.contact.positionName && contactFor.contact.positionName == newContact.positionName)
+                getContactKey(contactFor.contact) == getContactKey(newContact)
             }
         }
 
         obsoleteContactFor.each { contactFor ->
             def contact = contactFor.contact
-            resource.deleteFromContacts(contact)
+            contactFor.delete(flush: true)
 
-            // Log the deletion
-            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contact.email} from resource ${resource.uid}")
+            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contact.email ?: contact.buildName()} from resource ${resource.uid}")
 
-            // Check if the contact is orphaned and delete it
-            if (!ContactFor.findByContact(contact)) {
+            if (ContactFor.countByContact(contact) == 0) { // If the contact is not used by any other resource
                 contact.delete(flush: true)
-                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.email}")
+                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.email ?: contact.buildName()}")
             }
         }
 
         def addedContacts = []
         newContacts.each { contact ->
             def existingContactFor = existingContacts.find { contactFor ->
-                (contactFor.contact.email && contactFor.contact.email == contact.email) ||
-                        (contactFor.contact.firstName == contact.firstName && contactFor.contact.lastName == contact.lastName) ||
-                        (contactFor.contact.organizationName && contactFor.contact.organizationName == contact.organizationName) ||
-                        (contactFor.contact.positionName && contactFor.contact.positionName == contact.positionName)
+                getContactKey(contactFor.contact) == getContactKey(contact)
             }
 
             if (!existingContactFor) {
                 boolean isPrimaryContact = primaryContacts.contains(contact)
 
-                if (!addedContacts.contains(contact.email ?: contact.organizationName)) {
+                if (!addedContacts.contains(getContactKey(contact))) {
                     resource.addToContacts(contact, null, false, isPrimaryContact, username)
-                    addedContacts << (contact.email ?: contact.organizationName)
+                    addedContacts << getContactKey(contact)
                 }
             } else {
                 existingContactFor.primaryContact = primaryContacts.contains(contact)
@@ -196,13 +218,12 @@ class IptService {
             }
         }
 
-        // Group by contact
+        existingContacts = resource.getContacts()
+
         def groupedByContact = existingContacts.groupBy { it.contact }
 
-        // Identify duplicates
         groupedByContact.each { contact, contactForList ->
             if (contactForList.size() > 1) {
-                // Remove duplicates, keeping only the first one
                 contactForList.drop(1).each { duplicate ->
                     duplicate.delete(flush: true)
                     activityLogService.log(username, admin, Action.DELETE, "Deleted duplicate contactFor ${contact.buildName()} in resource ${resource.uid}")
