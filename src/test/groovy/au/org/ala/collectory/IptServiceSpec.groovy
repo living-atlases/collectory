@@ -647,5 +647,164 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         def orphanContacts = Contact.findAll().findAll { contact -> !ContactFor.findByContact(contact) }
         orphanContacts.isEmpty()
     }
+
+    void "test syncContacts replaces contact when new one has more details"() {
+        given: "A resource with an existing contact and a new version with more details"
+        def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "user1", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        def contact2 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", organizationName: "Acme", userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
+
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        expect: "The initial contact exists without organization"
+        Contact.count() == 2
+        ContactFor.countByEntityUid(resource.uid) == 1
+
+        when: "syncContacts is called with a contact that has more details"
+        service.syncContacts(resource, [contact2], [contact2], "testUser", false)
+
+        then: "Only the new contact remains"
+        Contact.count() == 1
+        ContactFor.countByEntityUid(resource.uid) == 1
+
+        and: "The remaining contact has the updated details"
+        def remainingContact = Contact.findByEmail("contact@example.com")
+        remainingContact.organizationName == "Acme"
+    }
+
+    void "test syncContacts updates contact when information is removed"() {
+        given: "A resource with a contact that initially has an organization"
+        def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", organizationName: "Acme",userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        expect: "The contact exists with an organization"
+        Contact.count() == 1
+        ContactFor.countByEntityUid(resource.uid) == 1
+
+        when: "syncContacts is called with a contact that no longer has an organization"
+        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", userLastModified: "user2", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The same contact is updated rather than duplicated"
+        Contact.count() == 1
+        ContactFor.countByEntityUid(resource.uid) == 1
+        Contact.findByEmail("john@example.com").organizationName == null
+    }
+
+    void "test syncContacts updates contact when name is updated"() {
+        given: "A resource with a contact that initially has an organization"
+        def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        expect: "The contact exists with an organization"
+        Contact.count() == 1
+        ContactFor.countByEntityUid(resource.uid) == 1
+
+        when: "syncContacts is called with a contact that no longer has an organization"
+        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe Smith", organizationName: "Acme", userLastModified: "user2", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The same contact is updated rather than duplicated"
+        Contact.count() == 1
+        ContactFor.countByEntityUid(resource.uid) == 1
+        Contact.findByEmail("john@example.com").organizationName == "Acme"
+        Contact.findByEmail("john@example.com").lastName == "Doe Smith"
+    }
+
+    void "test syncContacts updates phone number if added"() {
+        given: "A resource with a contact without a phone number"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with an updated contact that includes a phone number"
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", phone: "123-456-7890", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The phone number is added to the existing contact"
+        Contact.findByEmail("contact@example.com").phone == "123-456-7890"
+    }
+
+    void "test syncContacts removes phone number if removed in new version"() {
+        given: "A resource with a contact that has a phone number"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", phone: "123-456-7890", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with a version of the contact that no longer has a phone number"
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The phone number is removed from the existing contact"
+        Contact.findByEmail("contact@example.com").phone == null
+    }
+
+    void "test syncContacts updates email if added"() {
+        given: "A resource with a contact without an email"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with an updated contact that includes an email"
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The email is added to the existing contact"
+        Contact.findByFirstNameAndLastName("John", "Doe").email == "contact@example.com"
+    }
+
+    void "test syncContacts removes email if removed in new version"() {
+        given: "A resource with a contact that has an email"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with a version of the contact that no longer has an email"
+        def updatedContact = new Contact(firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The email is removed from the existing contact"
+        Contact.findByFirstNameAndLastName("John", "Doe").email == null
+    }
+
+    void "test syncContacts updates userId if added"() {
+        given: "A resource with a contact without a userId"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with an updated contact that includes a userId"
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userId: "orcid:0000-0002-1234-5678", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The userId is added to the existing contact"
+        Contact.findByEmail("contact@example.com").userId == "orcid:0000-0002-1234-5678"
+    }
+
+    void "test syncContacts removes userId if removed in new version"() {
+        given: "A resource with a contact that has a userId"
+        def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userId: "orcid:0000-0002-1234-5678", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+
+        when: "syncContacts is called with a version of the contact that no longer has a userId"
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        service.syncContacts(resource, [updatedContact], [], "testUser", false)
+
+        then: "The userId is removed from the existing contact"
+        Contact.findByEmail("contact@example.com").userId == null
+    }
+
 }
 
