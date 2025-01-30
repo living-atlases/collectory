@@ -533,42 +533,6 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         Contact.count() == 2
     }
 
-    void "test addOrUpdateContact updates name with accent changes"() {
-        given: "An existing contact with a name without accents"
-        def existingContact = new Contact(
-                firstName: "Jose",
-                lastName: "Garcia",
-                email: "jose.garcia@example.org",
-                phone: "123456789",
-                userLastModified: "originalUser"
-        ).save(flush: true, failOnError: true)
-
-        def emlElement = new XmlSlurper().parseText('''        
-        <creator>
-            <individualName>
-                <givenName>José</givenName>
-                <surName>García</surName>
-            </individualName>
-            <electronicMailAddress>jose.garcia@example.org</electronicMailAddress>
-            <phone>123456789</phone>
-        </creator>
-    ''')
-
-        when: "addOrUpdateContact is called with an updated name containing accents"
-        def result = service.addOrUpdateContact(emlElement)
-
-        then: "The existing contact's name is updated to include accents"
-        result != null
-        result.email == "jose.garcia@example.org"
-        result.firstName == "José"
-        result.lastName == "García"
-        result.phone == "123456789"
-        result.userLastModified == "testUser"
-
-        and: "No duplicate contact is created"
-        Contact.count() == 1
-    }
-
     void "test process userIds from EML"() {
         given: "An EML input with creators and userIds"
         def emlXml = '''
@@ -610,6 +574,117 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         and: "Second contact contains correct userIdUrl and organizationName"
         result.contacts[1].userId == "https://orcid.org/0000-0002-9876-5432"
         result.contacts[1].organizationName == "Another Organization"
+    }
+
+    void "test addOrUpdateContact allows same email with different names"() {
+        given: "An existing contact with a specific name and email"
+        def existingContact = new Contact(
+                firstName: "Alice",
+                lastName: "Smith",
+                email: "shared@example.org",
+                userLastModified: "originalUser"
+        ).save(flush: true, failOnError: true)
+
+        def emlElement = new XmlSlurper().parseText('''        
+    <creator>
+        <individualName>
+            <givenName>Bob</givenName>
+            <surName>Johnson</surName>
+        </individualName>
+        <electronicMailAddress>shared@example.org</electronicMailAddress>
+    </creator>
+''')
+
+        when: "addOrUpdateContact is called with a different name but the same email"
+        def result = service.addOrUpdateContact(emlElement)
+
+        then: "A new contact is created instead of overwriting the existing one"
+        result != null
+        result.email == "shared@example.org"
+        result.firstName == "Bob"
+        result.lastName == "Johnson"
+        result.userLastModified == "testUser"
+
+        and: "Both contacts exist in the database"
+        Contact.count() == 2
+
+        and: "The original contact remains unchanged"
+        def originalContact = Contact.findByFirstNameAndLastName("Alice", "Smith")
+        originalContact.email == "shared@example.org"
+    }
+
+    void "test addOrUpdateContact does not overwrite contact with only orgName"() {
+        given: "A contact with both a name and organizationName exists"
+        def existingContactEml = new XmlSlurper().parseText('''        
+    <creator>
+        <individualName>
+            <givenName>John</givenName>
+            <surName>Doe</surName>
+        </individualName>
+        <organizationName>Acme Corp</organizationName>
+    </creator>
+    ''')
+
+        def newContactEml = new XmlSlurper().parseText('''        
+    <creator>
+        <organizationName>Acme Corp</organizationName>
+    </creator>
+    ''')
+
+        when: "The first contact is added"
+        def contactWithName = service.addOrUpdateContact(existingContactEml)
+
+        and: "A new contact with only the organization is added"
+        def contactWithOnlyOrg = service.addOrUpdateContact(newContactEml)
+
+        then: "Both contacts exist separately"
+        contactWithName != null
+        contactWithOnlyOrg != null
+        contactWithName.organizationName == "Acme Corp"
+        contactWithOnlyOrg.organizationName == "Acme Corp"
+
+        and: "They are stored as separate contacts"
+        Contact.count() == 2
+
+        and: "The original contact's name is not removed"
+        Contact.findByFirstNameAndLastName("John", "Doe") != null
+    }
+
+    void "test addOrUpdateContact does not overwrite contact with only positionName"() {
+        given: "A contact with both a name and positionName exists"
+        def existingContactEml = new XmlSlurper().parseText('''        
+    <creator>
+        <individualName>
+            <givenName>Jane</givenName>
+            <surName>Smith</surName>
+        </individualName>
+        <positionName>Data Manager</positionName>
+    </creator>
+    ''')
+
+        def newContactEml = new XmlSlurper().parseText('''        
+    <creator>
+        <positionName>Data Manager</positionName>
+    </creator>
+    ''')
+
+        when: "The first contact is added"
+        def contactWithName = service.addOrUpdateContact(existingContactEml)
+
+        and: "A new contact with only the position is added"
+        def contactWithOnlyPosition = service.addOrUpdateContact(newContactEml)
+
+        then: "Both contacts exist separately"
+        contactWithName != null
+        contactWithOnlyPosition != null
+        contactWithName.positionName == "Data Manager"
+        contactWithOnlyPosition.positionName == "Data Manager"
+
+        and: "They are stored as separate contacts"
+        Contact.count() == 2
+
+        and: "The original contact's name is not removed"
+        Contact.findByFirstNameAndLastName("Jane", "Smith") != null
     }
 
 }

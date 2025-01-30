@@ -170,10 +170,7 @@ class EmlImportService {
 
     private def addOrUpdateContact(emlElement) {
         def contact = null
-        if (emlElement.electronicMailAddress && !emlElement.electronicMailAddress.isEmpty()) {
-            String email = emlElement.electronicMailAddress.text().trim()
-            contact = Contact.findByEmail(email)
-        } else if (emlElement.individualName?.givenName && emlElement.individualName?.surName) {
+        if (emlElement.individualName?.givenName && emlElement.individualName?.surName) {
             contact = Contact.findByFirstNameAndLastName(
                     emlElement.individualName.givenName.text()?.trim(),
                     emlElement.individualName.surName.text()?.trim()
@@ -186,7 +183,6 @@ class EmlImportService {
             contact = Contact.findByPositionName(emlElement.positionName.text()?.trim())
         }
 
-        boolean hasEmail = emlElement?.electronicMailAddress?.text()?.trim()?.isEmpty() == false
         boolean hasSurName = emlElement?.individualName?.surName?.text()?.trim()?.isEmpty() == false
         boolean hasOrg = emlElement?.organizationName?.text()?.trim()?.isEmpty() == false
         boolean hasPosition = emlElement?.positionName?.text()?.trim()?.isEmpty() == false
@@ -194,7 +190,7 @@ class EmlImportService {
         String userIdDirectory = emlElement.userId?.@directory?.text()?.trim()
         String userIdUrl = userIdDirectory && userId ? "${userIdDirectory}${userId}" : null
 
-        if (!contact && (hasEmail || hasSurName || hasOrg || hasPosition)) {
+        if (!contact && (hasSurName || hasOrg || hasPosition)) {
             contact = new Contact()
             contact.firstName = emlElement.individualName?.givenName?.text()?.trim()
             contact.lastName = emlElement.individualName?.surName?.text()?.trim()

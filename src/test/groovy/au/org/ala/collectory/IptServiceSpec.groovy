@@ -60,8 +60,9 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
                 firstName: "Jane",
                 lastName: "Smith",
                 email: "jane.smith@example.org",
-                userLastModified: "testUser"
-        )
+                userLastModified: "testUser",
+                lastUpdated: new Date()
+        ).save(flush: true, failOnError: true)
 
         def updates = [
                 [
@@ -94,8 +95,9 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
                 firstName: "Alice",
                 lastName: "Brown",
                 email: "alice.brown@example.org",
-                userLastModified: "testUser"
-        )
+                userLastModified: "testUser",
+                lastUpdated: new Date()
+        ).save(flush: true, failOnError: true)
 
         def newResource = new DataResource(
                 websiteUrl: "http://example.org/new-resource",
@@ -191,7 +193,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
                 lastName: "Doe",
                 email: "john.doe@example.org",
                 userLastModified: "testUser"
-        )
+        ).save(flush: true, failOnError: true)
 
         def updates = [
                 [
@@ -589,35 +591,38 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         resource2.contacts[0].contact.email == "shared.contact@example.org"
     }
 
-    void "test syncContacts removes duplicates and avoids orphan contacts"() {
-        given: "A resource with existing contacts and potential duplicates"
+    void "test syncContacts correctly associates and removes contacts"() {
+        given: "A resource with existing contacts"
         def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
+
         def contact1 = new Contact(email: "contact1@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser").save(flush: true, failOnError: true)
         def contact2 = new Contact(email: "contact2@example.com", firstName: "Jane", lastName: "Smith", userLastModified: "testUser").save(flush: true, failOnError: true)
+        def contact3 = new Contact(email: "contact3@example.com", firstName: "Mark", lastName: "Taylor", userLastModified: "testUser").save(flush: true, failOnError: true)
 
-        // Adding duplicates
-        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        // Associate contact1 and contact2 with the resource
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
         new ContactFor(contact: contact2, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
-        new ContactFor(contact: contact2, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
-        expect: "Duplicates exist before syncContacts is called"
-        ContactFor.countByEntityUid(resource.uid) == 4
-
-        when: "syncContacts is called with new contacts"
-        service.syncContacts(resource, [contact1, contact2], [contact1], "testUser", false)
-
-        then: "Duplicates are removed and only one ContactFor per contact remains"
+        expect: "Contacts are associated before syncContacts is called"
         ContactFor.countByEntityUid(resource.uid) == 2
 
+        when: "syncContacts is called with a new contact list that replaces an existing one"
+        service.syncContacts(resource, [contact2, contact3], [contact3], "testUser", false)
+
+        then: "The resource has the correct contacts"
+        ContactFor.countByEntityUid(resource.uid) == 2
+        ContactFor.findByContact(contact2) != null
+        ContactFor.findByContact(contact3) != null
+
         and: "Primary contact status is correctly updated"
-        ContactFor.findByContact(contact1).primaryContact == true
+        ContactFor.findByContact(contact3).primaryContact == true
         ContactFor.findByContact(contact2).primaryContact == false
 
-        and: "No orphaned contacts remain"
-        def orphanContacts = Contact.findAll().findAll { contact -> !ContactFor.findByContact(contact) }
-        orphanContacts.isEmpty()
+        and: "The removed contact (contact1) is deleted if it has no other associations"
+        ContactFor.findByContact(contact1) == null
+        Contact.findById(contact1.id) == null // Contact1 should be deleted
     }
+
 
     void "test remove duplicate contacts by name and keep latest"() {
         given: "A resource with multiple contacts that share the same name"
@@ -677,7 +682,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         given: "A resource with a contact that initially has an organization"
         def resource = new DataResource(uid: "test-resource", name: "test resource", userLastModified: "testUser").save(flush: true, failOnError: true)
 
-        def contact1 = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", organizationName: "Acme",userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
+        def contact1 = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", organizationName: "Acme", userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
         expect: "The contact exists with an organization"
@@ -685,7 +690,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         ContactFor.countByEntityUid(resource.uid) == 1
 
         when: "syncContacts is called with a contact that no longer has an organization"
-        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", userLastModified: "user2", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe", userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The same contact is updated rather than duplicated"
@@ -706,7 +711,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         ContactFor.countByEntityUid(resource.uid) == 1
 
         when: "syncContacts is called with a contact that no longer has an organization"
-        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe Smith", organizationName: "Acme", userLastModified: "user2", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "john@example.com", firstName: "John", lastName: "Doe Smith", organizationName: "Acme", userLastModified: "user2", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The same contact is updated rather than duplicated"
@@ -724,7 +729,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
         when: "syncContacts is called with an updated contact that includes a phone number"
-        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", phone: "123-456-7890", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", phone: "123-456-7890", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The phone number is added to the existing contact"
@@ -736,10 +741,10 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
 
         def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", phone: "123-456-7890", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
-        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true).save(flush: true, failOnError: true)
 
         when: "syncContacts is called with a version of the contact that no longer has a phone number"
-        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The phone number is removed from the existing contact"
@@ -754,7 +759,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
         when: "syncContacts is called with an updated contact that includes an email"
-        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The email is added to the existing contact"
@@ -769,7 +774,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
         when: "syncContacts is called with a version of the contact that no longer has an email"
-        def updatedContact = new Contact(firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The email is removed from the existing contact"
@@ -784,7 +789,7 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
 
         when: "syncContacts is called with an updated contact that includes a userId"
-        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userId: "orcid:0000-0002-1234-5678", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userId: "orcid:0000-0002-1234-5678", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The userId is added to the existing contact"
@@ -796,10 +801,10 @@ class IptServiceSpec extends Specification implements ServiceUnitTest<IptService
         def resource = new DataResource(uid: "test-resource", name: "Test Resource", userLastModified: "testUser").save(flush: true, failOnError: true)
 
         def contact1 = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userId: "orcid:0000-0002-1234-5678", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
-        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true)
+        new ContactFor(contact: contact1, entityUid: resource.uid, userLastModified: "testUser").save(flush: true, failOnError: true).save(flush: true, failOnError: true)
 
         when: "syncContacts is called with a version of the contact that no longer has a userId"
-        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date())
+        def updatedContact = new Contact(email: "contact@example.com", firstName: "John", lastName: "Doe", userLastModified: "testUser", lastUpdated: new Date()).save(flush: true, failOnError: true)
         service.syncContacts(resource, [updatedContact], [], "testUser", false)
 
         then: "The userId is removed from the existing contact"

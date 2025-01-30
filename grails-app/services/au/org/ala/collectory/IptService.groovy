@@ -147,136 +147,70 @@ class IptService {
             }
         }
     }
+
     private void syncContacts(DataResource resource, List<Contact> newContacts, List<Contact> primaryContacts, String username, boolean admin) {
-        def existingContacts = resource.getContacts()
+        def existingContactForEntries = resource.getContacts()
 
-        // Generate multiple keys for each contact to compare different levels of data completeness
-        def getContactKeys = { contact ->
-            def baseKey = contact.email ?: contact.userId ?:
-                    (contact.firstName && contact.lastName ? "${contact.firstName}_${contact.lastName}" : null)
-            def orgKey = contact.organizationName ? "${baseKey}_${contact.organizationName}" : baseKey
-            def positionKey = contact.positionName ? "${orgKey}_${contact.positionName}" : orgKey
-            return [baseKey, orgKey, positionKey].findAll { it } // Remove null values
+        // Index current contacts by ID for quick lookup
+        def existingContactsById = existingContactForEntries.collectEntries {
+            [(it.contact.id): it]
         }
 
-        // Group existing contacts by all possible keys
-        def groupedExistingContacts = existingContacts.groupBy { getContactKeys(it.contact).join("|") }
-
-        groupedExistingContacts.each { key, contacts ->
-            if (key && contacts.size() > 1) {
-                contacts.sort { -it.contact.lastUpdated?.time ?: 0 }
-                def latestContact = contacts.first().contact
-
-                contacts.drop(1).each { duplicateContactFor ->
-                    def duplicateContact = duplicateContactFor.contact
-                    duplicateContactFor.delete(flush: true)
-
-                    if (ContactFor.countByContact(duplicateContact) == 0) {
-                        duplicateContact.delete(flush: true)
-                        activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${duplicateContact.buildName() ?: duplicateContact.email}")
-                    }
-                }
-            }
+        // Index new contacts by ID (ensuring they are already persisted)
+        def newContactsById = newContacts.findAll { it.id != null }.collectEntries {
+            [(it.id): it]
         }
 
-        existingContacts = resource.getContacts()
-
-        // Identify obsolete contacts that are no longer in the new list
-        def obsoleteContactFor = existingContacts.findAll { contactFor ->
-            !newContacts.any { newContact ->
-                getContactKeys(contactFor.contact).any { key -> getContactKeys(newContact).contains(key) }
-            }
+        // Identify contacts to remove (those that are in existingContacts but not in newContacts)
+        def obsoleteContactsFor = existingContactForEntries.findAll { contactFor ->
+            !newContactsById.containsKey(contactFor.contact.id)
         }
 
-        obsoleteContactFor.each { contactFor ->
+        // Remove obsolete contact associations first
+        obsoleteContactsFor.each { contactFor ->
             def contact = contactFor.contact
             contactFor.delete(flush: true)
 
-            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contact.email ?: contact.buildName()} from resource ${resource.uid}")
+            activityLogService.log(username, admin, Action.DELETE, "Removed obsolete contact ${contact.buildName()} from resource ${resource.uid}")
+
+            // Ensure no other resources use this contact before deleting it
+            if (ContactFor.countByContact(contact) == 0) {
+                contact.delete(flush: true)
+                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.buildName()}")
+            }
+        }
+
+        // Identify contacts to add (only if they already exist in DB and are not already associated)
+        newContacts.each { newContact ->
+            def existingAssociation = ContactFor.findByContactAndEntityUid(newContact, resource.uid)
+            if (newContact.id != null && !existingAssociation) {
+                resource.addToContacts(newContact, null, false, primaryContacts.contains(newContact), username)
+            } else {
+                log.info("Skipping contact ${newContact.buildName()} for resource ${resource.uid} - already associated.")
+            }
+        }
+
+        activityLogService.log(username, admin, Action.EDIT_SAVE, "Synced contacts for resource ${resource.uid}")
+    }
+
+    private void syncContactsOld(DataResource resource, List<Contact> newContacts, List<Contact> primaryContacts, String username, boolean admin) {
+        def existingContacts = ContactFor.findAllByEntityUid(resource.uid)*.contact
+
+        // Delete contacts that are no longer associated with the resource
+        def obsoleteContacts = existingContacts.findAll { !newContacts.contains(it) }
+        obsoleteContacts.each { contact ->
+            ContactFor.findByContactAndEntityUid(contact, resource.uid)?.delete(flush: true)
 
             if (ContactFor.countByContact(contact) == 0) {
                 contact.delete(flush: true)
-                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.email ?: contact.buildName()}")
+                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.buildName() ?: contact.email}")
             }
         }
 
-        def addedContacts = []
-        newContacts.each { newContact ->
-            def existingContactFor = existingContacts.find { contactFor ->
-                def existingKeys = getContactKeys(contactFor.contact)
-                def newKeys = getContactKeys(newContact)
-                existingKeys.any { newKeys.contains(it) }
-            }
-
-            if (existingContactFor) {
-                def existingContact = existingContactFor.contact
-                boolean updated = false
-
-                // Determine if the new contact has more details than the existing one
-                boolean hasMoreDetails = (
-                        (newContact.organizationName && !existingContact.organizationName) ||
-                                (newContact.positionName && !existingContact.positionName) ||
-                                (newContact.phone && !existingContact.phone) ||
-                                (newContact.userId && !existingContact.userId)
-                )
-
-                if (hasMoreDetails) {
-                    // **Fix:** Ensure `ContactFor` is updated with the new contact before deleting the old one
-                    existingContactFor.contact = newContact
-                    existingContactFor.save(flush: true)
-
-                    if (ContactFor.countByContact(existingContact) == 0) {
-                        existingContact.delete(flush: true)
-                        activityLogService.log(username, admin, Action.DELETE, "Deleted outdated contact ${existingContact.email ?: existingContact.buildName()}")
-                    }
-                } else {
-                    // Update only if necessary
-                    if (existingContact.organizationName != newContact.organizationName) {
-                        existingContact.organizationName = newContact.organizationName
-                        updated = true
-                    }
-                    if (existingContact.positionName != newContact.positionName) {
-                        existingContact.positionName = newContact.positionName
-                        updated = true
-                    }
-                    if (existingContact.phone != newContact.phone) {
-                        existingContact.phone = newContact.phone
-                        updated = true
-                    }
-                    if (existingContact.userId != newContact.userId) {
-                        existingContact.userId = newContact.userId
-                        updated = true
-                    }
-
-                    if (updated) {
-                        existingContact.save(flush: true)
-                    }
-                }
-
-                existingContactFor.primaryContact = primaryContacts.contains(newContact)
-                existingContactFor.save(flush: true)
-            } else {
-                boolean isPrimaryContact = primaryContacts.contains(newContact)
-                def contactKey = getContactKeys(newContact).join("|")
-
-                if (!addedContacts.contains(contactKey)) {
-                    resource.addToContacts(newContact, null, false, isPrimaryContact, username)
-                    addedContacts << contactKey
-                }
-            }
-        }
-
-        existingContacts = resource.getContacts()
-
-        // Remove duplicates again if any still exist
-        def groupedByContact = existingContacts.groupBy { it.contact }
-
-        groupedByContact.each { contact, contactForList ->
-            if (contactForList.size() > 1) {
-                contactForList.drop(1).each { duplicate ->
-                    duplicate.delete(flush: true)
-                    activityLogService.log(username, admin, Action.DELETE, "Deleted duplicate contactFor ${contact.buildName()} in resource ${resource.uid}")
-                }
+        // Associate new contacts with the resource if they are not already associated
+        newContacts.each { contact ->
+            if (!existingContacts.contains(contact)) {
+                resource.addToContacts(contact, null, false, primaryContacts.contains(contact), username)
             }
         }
 
@@ -284,7 +218,7 @@ class IptService {
 
         if (resource.hasErrors()) {
             resource.errors.each { error ->
-                log.debug("Error saving contact: ${error}")
+                log.debug("Error saving resource contacts: ${error}")
             }
         }
 
