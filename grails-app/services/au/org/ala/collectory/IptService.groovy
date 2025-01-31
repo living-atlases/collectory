@@ -99,7 +99,6 @@ class IptService {
             map
         }
         def mergedResources = []
-
         updates.each { update ->
             def existingResource = currentResources[update.resource.websiteUrl]
 
@@ -115,8 +114,8 @@ class IptService {
             } else {
                 if (create) {
                     createNewResource(provider, update, username, admin)
-                    mergedResources << update.resource
                 }
+                mergedResources << update.resource
             }
         }
 
@@ -187,38 +186,6 @@ class IptService {
                 resource.addToContacts(newContact, null, false, primaryContacts.contains(newContact), username)
             } else {
                 log.info("Skipping contact ${newContact.buildName()} for resource ${resource.uid} - already associated.")
-            }
-        }
-
-        activityLogService.log(username, admin, Action.EDIT_SAVE, "Synced contacts for resource ${resource.uid}")
-    }
-
-    private void syncContactsOld(DataResource resource, List<Contact> newContacts, List<Contact> primaryContacts, String username, boolean admin) {
-        def existingContacts = ContactFor.findAllByEntityUid(resource.uid)*.contact
-
-        // Delete contacts that are no longer associated with the resource
-        def obsoleteContacts = existingContacts.findAll { !newContacts.contains(it) }
-        obsoleteContacts.each { contact ->
-            ContactFor.findByContactAndEntityUid(contact, resource.uid)?.delete(flush: true)
-
-            if (ContactFor.countByContact(contact) == 0) {
-                contact.delete(flush: true)
-                activityLogService.log(username, admin, Action.DELETE, "Deleted orphaned contact ${contact.buildName() ?: contact.email}")
-            }
-        }
-
-        // Associate new contacts with the resource if they are not already associated
-        newContacts.each { contact ->
-            if (!existingContacts.contains(contact)) {
-                resource.addToContacts(contact, null, false, primaryContacts.contains(contact), username)
-            }
-        }
-
-        resource.save(flush: true)
-
-        if (resource.hasErrors()) {
-            resource.errors.each { error ->
-                log.debug("Error saving resource contacts: ${error}")
             }
         }
 
