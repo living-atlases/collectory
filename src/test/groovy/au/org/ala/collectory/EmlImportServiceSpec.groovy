@@ -687,4 +687,38 @@ class EmlImportServiceSpec extends Specification implements ServiceUnitTest<EmlI
         Contact.findByFirstNameAndLastName("Jane", "Smith") != null
     }
 
+    void "test addOrUpdateContact updates positionName and organizationName case sensitivity"() {
+        given:
+        def existingContact = new Contact(
+                firstName: "John",
+                lastName: "Doe",
+                positionName: "data manager",
+                organizationName: "example org",
+                email: "john.doe@example.com",
+                userLastModified: "originalUser"
+        ).save(flush: true, failOnError: true)
+
+        def emlElement = new XmlSlurper().parseText('''
+        <creator>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Doe</surName>
+            </individualName>
+            <positionName>Data Manager</positionName>
+            <organizationName>Example Org</organizationName>
+            <electronicMailAddress>john.doe@example.com</electronicMailAddress>
+        </creator>
+    ''')
+
+        when:
+        def updatedContact = service.addOrUpdateContact(emlElement)
+
+        then:
+        updatedContact != null
+        updatedContact.id == existingContact.id
+        updatedContact.positionName == "Data Manager"
+        updatedContact.organizationName == "Example Org"
+    }
+
+
 }
