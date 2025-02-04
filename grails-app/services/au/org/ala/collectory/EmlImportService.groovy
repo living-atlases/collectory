@@ -125,12 +125,11 @@ class EmlImportService {
         }
 
         def addUniqueContact = { provider ->
-            def providerEmail = provider.electronicMailAddress?.text()?.trim()
             def providerName = "${provider.individualName?.givenName?.text()?.trim()}_${provider.individualName?.surName?.text()?.trim()}"
             def providerOrg = provider.organizationName?.text()?.trim()
             def providerPosition = provider.positionName?.text()?.trim()
 
-            def uniqueKey = providerEmail ?: providerName ?: providerOrg ?: providerPosition
+            def uniqueKey = providerName ?: providerOrg ?: providerPosition
             if (uniqueKey && !processedContacts.contains(uniqueKey)) {
                 def contact = addOrUpdateContact(provider)
                 if (contact) {
