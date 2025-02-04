@@ -182,7 +182,7 @@ class IptService {
         // Identify contacts to add (only if they already exist in DB and are not already associated)
         newContacts.each { newContact ->
             def existingAssociation = ContactFor.findByContactAndEntityUid(newContact, resource.uid)
-            if (newContact.id != null && !existingAssociation) {
+            if (!existingAssociation) {
                 resource.addToContacts(newContact, null, false, primaryContacts.contains(newContact), username)
             } else {
                 log.info("Skipping contact ${newContact.buildName()} for resource ${resource.uid} - already associated.")
