@@ -169,20 +169,8 @@ class TempDataResource {
      * @return primary ContactFor (contains the contact and the role for this collection)
      */
     ContactFor getPrimaryPublicContact() {
-        List<ContactFor> list = getContacts()
-        switch (list.size()) {
-            case 0: return null
-            case 1: return list[0]
-            default:
-                ContactFor result = null
-                for (cf in list) {
-                    if (cf.primaryContact && cf.contact.publish)  // definitive (as long as there is only one primary)
-                        return cf
-                }
-                // filter for publish then take the first
-                if (!result) result = list.findAll({it.contact.publish})[0]  // just take one
-                return result
-        }
+        List<ContactFor> publicList = getContacts().findAll { it.contact?.publish }
+        return publicList.find { it.primaryContact } ?: (publicList ? publicList[0] : null)
     }
 
     /**

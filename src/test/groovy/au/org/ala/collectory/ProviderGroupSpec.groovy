@@ -10,7 +10,7 @@ import spock.lang.Unroll
 class ProviderGroupSpec extends Specification implements DataTest {
 
     def setupSpec() {
-        mockDomains(DataResource, DataProvider, Contact, ContactFor, Attribution)
+        mockDomains(DataResource, DataProvider, Contact, ContactFor, Attribution, TempDataResource)
     }
 
     private DataResource savedResource(Map props = [:]) {
@@ -172,6 +172,48 @@ class ProviderGroupSpec extends Specification implements DataTest {
         expect:
         dr.primaryPublicContact.id == visible.id
         dr.publicContactsPrimaryFirst*.id == [visible.id]
+    }
+
+    def "#262 getPrimaryPublicContact returns null when the sole contact is unpublished"() {
+        given:
+        def dr = savedResource()
+        addContact(dr, [lastName: 'Hidden', publish: false], false)
+
+        expect:
+        dr.primaryPublicContact == null
+        dr.publicContactsPrimaryFirst == []
+    }
+
+    def "#262 getPrimaryPublicContact returns the sole contact when it is published"() {
+        given:
+        def dr = savedResource()
+        def visible = addContact(dr, [lastName: 'Visible', publish: true], false)
+
+        expect:
+        dr.primaryPublicContact.id == visible.id
+        dr.publicContactsPrimaryFirst*.id == [visible.id]
+    }
+
+    def "#262 getPrimaryPublicContact returns null when all contacts are unpublished"() {
+        given:
+        def dr = savedResource()
+        addContact(dr, [lastName: 'Hidden1', publish: false], true)
+        addContact(dr, [lastName: 'Hidden2', publish: false], false)
+
+        expect:
+        dr.primaryPublicContact == null
+        dr.publicContactsPrimaryFirst == []
+    }
+
+    def "#262 TempDataResource getPrimaryPublicContact returns null when sole contact is unpublished"() {
+        given:
+        def drt = new TempDataResource(uid: 'drt1', name: 'Temp', userLastModified: 't').save(validate: false, flush: true)
+        def c = new Contact(lastName: 'Hidden', publish: false, userLastModified: 't').save(validate: false, flush: true)
+        new ContactFor(contact: c, entityUid: drt.uid, primaryContact: false, administrator: false, userLastModified: 't').save(validate: false, flush: true)
+
+        expect:
+        drt.primaryPublicContact == null
+        drt.publicContactsPrimaryFirst == []
     }
 
     def "isAuthorised is true only for administrator contacts of the entity"() {
