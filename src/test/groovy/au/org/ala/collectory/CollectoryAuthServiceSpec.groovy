@@ -181,7 +181,7 @@ class CollectoryAuthServiceSpec extends Specification implements ServiceUnitTest
         service.authorisedForUser('nobody@example.org') == [sorted: [], keys: [], latestMod: null]
     }
 
-    @PendingFeature(reason = 'DELETE /ws/{entity}/{uid} does not remove ContactFor links (the admin UI delete does), and authorisedForUser then calls pg.children() on null, breaking the user entity list in ManageController')
+    @PendingFeature(reason = '#337 DELETE /ws/{entity}/{uid} does not remove ContactFor links (the admin UI delete does), and authorisedForUser then calls pg.children() on null, breaking the user entity list in ManageController')
     def "authorisedForUser ignores admin links to entities that no longer exist"() {
         given:
         service.providerGroupService = Stub(ProviderGroupService) { _get(_) >> null }
