@@ -1,0 +1,39 @@
+# Overrides for @Integration specs only (this file is on the integrationTest
+# classpath, never in the war nor in `./gradlew test`). Grails activates the
+# `test` Spring profile when it boots in the test environment, so this file
+# is layered on top of grails-app/conf/application.yml.
+#
+# The database comes from the environment; see src/test/docker/mysql-compose.yml.
+# Specs are annotated @Requires({ System.getenv('COLLECTORY_TEST_DB_URL') })
+# and are skipped without it.
+dataSource:
+    url: ${COLLECTORY_TEST_DB_URL:}
+    username: ${COLLECTORY_TEST_DB_USER:collectory}
+    password: ${COLLECTORY_TEST_DB_PASSWORD:password}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    # Schema is owned by Liquibase (updateOnStart), as in production
+    dbCreate: none
+
+# BootStrap probes this URL without catching network errors
+biocacheServicesUrl: ''
+
+# JWT validation fetches the OIDC discovery document at startup. OIDC itself
+# stays enabled (with the dummy values from application.yml) because the
+# ala-auth SSO interceptor needs its SSOStrategy bean.
+security:
+    jwt:
+        enabled: false
+
+sitemap:
+    enabled: false
+    dir: build/integration-test-data
+uploadFilePath: build/integration-test-data/upload/
+repository:
+    location:
+        images: build/integration-test-data/data
+grails:
+    # Never read a developer's /data/collectory/config/* (it may point to another DB)
+    config:
+        locations: []
+    assets:
+        storagePath: build/integration-test-data

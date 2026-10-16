@@ -1,0 +1,28 @@
+# Throwaway MySQL for `./gradlew integrationTest`. Data lives in tmpfs, so
+# `down` + `up` gives a clean database every time.
+#
+#   docker compose -f src/test/docker/mysql-compose.yml up -d --wait
+#   export COLLECTORY_TEST_DB_URL='jdbc:mysql://127.0.0.1:3316/collectory?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+#   export COLLECTORY_TEST_DB_USER=collectory COLLECTORY_TEST_DB_PASSWORD=password
+#   ./gradlew integrationTest
+#   docker compose -f src/test/docker/mysql-compose.yml down
+#
+# Keep the image tag in sync with the integrationTest job in .github/workflows/ci.yml.
+name: collectory-it
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "127.0.0.1:${COLLECTORY_TEST_DB_PORT:-3316}:3306"
+    tmpfs:
+      - /var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: collectory
+      MYSQL_USER: collectory
+      MYSQL_PASSWORD: password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30

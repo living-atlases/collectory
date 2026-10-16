@@ -65,3 +65,47 @@ jobs:
           TRAVIS_DEPLOY_USERNAME: ${{ secrets.NEXUS_DEPLOY_USERNAME }}
           TRAVIS_DEPLOY_PASSWORD: ${{ secrets.NEXUS_DEPLOY_PASSWORD }}
         run: ./gradlew publish
+
+  integrationTest:
+    runs-on: ubuntu-latest
+    # Keep the image tag in sync with src/test/docker/mysql-compose.yml
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: collectory
+          MYSQL_USER: collectory
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      JAVA_TOOL_OPTIONS: -Dhttps.protocols=TLSv1.2
+      COLLECTORY_TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/collectory?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      COLLECTORY_TEST_DB_USER: collectory
+      COLLECTORY_TEST_DB_PASSWORD: password
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Integration tests
+        run: ./gradlew integrationTest
+
+      - name: Upload integration test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: build/reports/tests/integrationTest

@@ -201,3 +201,17 @@ test {
         showStandardStreams = true
     }
 }
+
+// Boots the app against a real MySQL (see src/test/docker/mysql-compose.yml).
+// Specs are skipped when COLLECTORY_TEST_DB_URL is not set.
+integrationTest {
+    useJUnitPlatform()
+    include '**/*Spec.*'
+    // The database is not a task input: never reuse results from a previous run or the build cache
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+        exceptionFormat "full"
+    }
+}
